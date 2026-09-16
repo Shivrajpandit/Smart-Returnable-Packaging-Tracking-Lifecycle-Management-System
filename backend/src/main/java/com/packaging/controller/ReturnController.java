@@ -13,7 +13,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/returns")
-@CrossOrigin(origins = "*")
 public class ReturnController {
 
     private final TransactionService transactionService;

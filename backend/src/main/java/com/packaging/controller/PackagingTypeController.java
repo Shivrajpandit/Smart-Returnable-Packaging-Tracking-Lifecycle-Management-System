@@ -13,7 +13,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/packaging-types")
-@CrossOrigin(origins = "*")
 public class PackagingTypeController {
 
     private final PackagingTypeService packagingTypeService;

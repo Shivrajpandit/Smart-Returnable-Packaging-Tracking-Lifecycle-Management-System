@@ -28,9 +28,9 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- Hash: $2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3ee
 -- =============================================================================
 INSERT INTO users (user_id, name, email, password, role) VALUES
-(1, 'Rajesh Sharma', 'admin@packaging.com', '$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3ee', 'ADMIN'),
-(2, 'Amit Verma', 'staff@packaging.com', '$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3ee', 'WAREHOUSE_STAFF'),
-(3, 'Pooja Nair', 'manager@packaging.com', '$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3ee', 'MANAGER');
+(1, 'Rajesh Sharma', 'admin@packaging.com', '$2a$10$WxbaAPyL77tgE3Vs1Yibc./HpGPCzfpkga2nwOiF7BcD4FevhoP0q', 'ADMIN'),
+(2, 'Amit Verma', 'staff@packaging.com', '$2a$10$WxbaAPyL77tgE3Vs1Yibc./HpGPCzfpkga2nwOiF7BcD4FevhoP0q', 'WAREHOUSE_STAFF'),
+(3, 'Pooja Nair', 'manager@packaging.com', '$2a$10$WxbaAPyL77tgE3Vs1Yibc./HpGPCzfpkga2nwOiF7BcD4FevhoP0q', 'MANAGER');
 
 -- =============================================================================
 -- 2. Insert Customers (Realistic Indian Manufacturing & Logistics Firms)

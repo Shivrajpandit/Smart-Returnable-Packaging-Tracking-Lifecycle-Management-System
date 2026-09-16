@@ -13,7 +13,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/movements")
-@CrossOrigin(origins = "*")
 public class MovementController {
 
     private final TransactionService transactionService;
