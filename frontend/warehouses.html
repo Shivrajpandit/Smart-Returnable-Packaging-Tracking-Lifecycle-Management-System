@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Warehouses - SRPT-LMS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div class="app-wrapper">
+    <div id="sidebar-container"></div>
+
+    <div class="main-content">
+      <div class="topbar">
+        <h1 class="page-title">Warehouse & Hub Facilities</h1>
+        <div id="user-profile-badge"></div>
+      </div>
+
+      <div class="p-4">
+        
+        <!-- Actions -->
+        <div class="content-card mb-4 d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="fw-bold mb-0">Regional Logistics Hubs</h5>
+            <small class="text-muted">Multi-facility storage and dispatch network</small>
+          </div>
+          <button class="btn btn-primary" onclick="openWarehouseModal()">
+            <i class="bi bi-plus-lg me-1"></i> Add Warehouse Hub
+          </button>
+        </div>
+
+        <!-- Warehouse Cards / Table -->
+        <div class="content-card">
+          <div class="table-responsive">
+            <table class="table table-custom align-middle">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Warehouse Hub Name</th>
+                  <th>Location / Industrial Zone</th>
+                  <th>Facility Manager</th>
+                  <th>Contact Number</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="warehouses-table-body">
+                <tr><td colspan="6" class="text-center py-4 text-muted">Loading warehouse records...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Warehouse Modal -->
+  <div class="modal fade" id="warehouseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="warehouse-form">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold" id="warehouseModalTitle">Add Warehouse Hub</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="warehouseId">
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Warehouse Hub Name</label>
+              <input type="text" class="form-control" id="warehouseName" placeholder="e.g. Pune Central Logistics Hub" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Facility Location / Address</label>
+              <textarea class="form-control" id="location" rows="2" placeholder="MIDC Phase 2, Chakan, Pune" required></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Facility Manager Name</label>
+              <input type="text" class="form-control" id="managerName" placeholder="e.g. Pooja Nair" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Direct Contact Number</label>
+              <input type="text" class="form-control" id="contactNumber" placeholder="e.g. +91 20 6711 9001" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Facility</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    let warehousesList = [];
+
+    async function loadWarehouses() {
+      warehousesList = await API.warehouses.getAll();
+      const tbody = document.getElementById('warehouses-table-body');
+
+      if (warehousesList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No warehouse hubs found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = warehousesList.map(w => `
+        <tr>
+          <td><span class="text-muted">#${w.warehouseId}</span></td>
+          <td><strong class="text-primary">${w.warehouseName}</strong></td>
+          <td>${w.location}</td>
+          <td>${w.managerName}</td>
+          <td>${w.contactNumber}</td>
+          <td>
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-outline-primary" onclick="editWarehouse(${w.warehouseId})"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-outline-danger" onclick="deleteWarehouse(${w.warehouseId})"><i class="bi bi-trash"></i></button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    window.openWarehouseModal = function() {
+      document.getElementById('warehouse-form').reset();
+      document.getElementById('warehouseId').value = '';
+      document.getElementById('warehouseModalTitle').textContent = 'Add Warehouse Hub';
+      new bootstrap.Modal(document.getElementById('warehouseModal')).show();
+    };
+
+    window.editWarehouse = function(id) {
+      const w = warehousesList.find(item => item.warehouseId === id);
+      if (!w) return;
+      document.getElementById('warehouseId').value = w.warehouseId;
+      document.getElementById('warehouseName').value = w.warehouseName;
+      document.getElementById('location').value = w.location;
+      document.getElementById('managerName').value = w.managerName;
+      document.getElementById('contactNumber').value = w.contactNumber;
+      document.getElementById('warehouseModalTitle').textContent = 'Edit Warehouse Hub';
+      new bootstrap.Modal(document.getElementById('warehouseModal')).show();
+    };
+
+    window.deleteWarehouse = async function(id) {
+      if (confirm('Are you sure you want to delete this warehouse hub?')) {
+        try {
+          await API.warehouses.delete(id);
+          showNotification('Warehouse deleted successfully!', 'success');
+          await loadWarehouses();
+        } catch (err) {
+          // Handled
+        }
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = Auth.requireAuth(['ADMIN']);
+      if (!user) return;
+      Auth.initNavigation('warehouses');
+
+      await loadWarehouses();
+
+      document.getElementById('warehouse-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('warehouseId').value;
+        const data = {
+          warehouseName: document.getElementById('warehouseName').value,
+          location: document.getElementById('location').value,
+          managerName: document.getElementById('managerName').value,
+          contactNumber: document.getElementById('contactNumber').value
+        };
+
+        try {
+          if (id) {
+            await API.warehouses.update(id, data);
+            showNotification('Warehouse updated successfully!', 'success');
+          } else {
+            await API.warehouses.create(data);
+            showNotification('Warehouse added successfully!', 'success');
+          }
+          bootstrap.Modal.getInstance(document.getElementById('warehouseModal')).hide();
+          await loadWarehouses();
+        } catch (err) {
+          // Handled
+        }
+      });
+    });
+  </script>
+</body>
+</html>

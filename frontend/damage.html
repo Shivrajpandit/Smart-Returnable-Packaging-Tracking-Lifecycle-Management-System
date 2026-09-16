@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Damage Logs - SRPT-LMS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div class="app-wrapper">
+    <div id="sidebar-container"></div>
+
+    <div class="main-content">
+      <div class="topbar">
+        <h1 class="page-title">Damage Incident Reports</h1>
+        <div id="user-profile-badge"></div>
+      </div>
+
+      <div class="p-4">
+        
+        <div class="row g-4">
+          <!-- Record Damage Form -->
+          <div class="col-lg-4">
+            <div class="content-card">
+              <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                <i class="bi bi-exclamation-triangle-fill text-warning"></i> Log Asset Damage
+              </h5>
+              
+              <form id="damage-form">
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Damaged Asset</label>
+                  <select id="assetId" class="form-select" required>
+                    <option value="">Select asset...</option>
+                  </select>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Damage Classification</label>
+                  <input type="text" id="damageType" class="form-control" placeholder="e.g. Wall Deformation, Broken Board" required>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Severity Tier</label>
+                  <select id="severity" class="form-select" required>
+                    <option value="LOW">LOW - Minor cosmetic scuffs</option>
+                    <option value="MEDIUM" selected>MEDIUM - Functional repair needed</option>
+                    <option value="HIGH">HIGH - Critical structural compromise</option>
+                  </select>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Incident / Discovery Date</label>
+                  <input type="date" id="damageDate" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Estimated Repair Cost (₹)</label>
+                  <input type="number" step="0.01" id="estimatedCost" class="form-control" value="0.00" required>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label fw-semibold">Detailed Description</label>
+                  <textarea id="description" class="form-control" rows="2" placeholder="Explain cause or visual inspection notes"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-warning w-100 py-2 fw-semibold text-dark">
+                  <i class="bi bi-file-earmark-plus me-1"></i> Submit Damage Incident
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Damage Records List -->
+          <div class="col-lg-8">
+            <div class="content-card">
+              <h5 class="fw-bold mb-3">Damage Incident Audit Log</h5>
+              <div class="table-responsive">
+                <table class="table table-custom align-middle">
+                  <thead>
+                    <tr>
+                      <th>Damage #</th>
+                      <th>Asset Code</th>
+                      <th>Type</th>
+                      <th>Severity</th>
+                      <th>Date</th>
+                      <th>Estimated (₹)</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="damage-table-body">
+                    <tr><td colspan="7" class="text-center py-4 text-muted">Loading incident reports...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    let currentUser = null;
+
+    async function loadAssets() {
+      const assets = await API.assets.getAll();
+      const assetSelect = document.getElementById('assetId');
+      assetSelect.innerHTML = `<option value="">Select asset...</option>` +
+        assets.map(a => `<option value="${a.assetId}">[${a.assetCode}] ${a.packagingType?.typeName || ''} (${a.status})</option>`).join('');
+    }
+
+    async function loadDamages() {
+      const damages = await API.damages.getAll();
+      const tbody = document.getElementById('damage-table-body');
+
+      if (damages.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">No damage records found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = damages.slice().reverse().map(d => {
+        const sevClass = d.severity === 'HIGH' ? 'bg-danger text-white' : (d.severity === 'MEDIUM' ? 'bg-warning text-dark' : 'bg-info text-dark');
+        return `
+          <tr>
+            <td><span class="text-muted">#${d.damageId}</span></td>
+            <td><strong class="text-primary">${d.asset?.assetCode || 'N/A'}</strong></td>
+            <td>${d.damageType}</td>
+            <td><span class="badge ${sevClass} rounded-pill">${d.severity}</span></td>
+            <td>${d.damageDate}</td>
+            <td>₹ ${Number(d.estimatedCost || 0).toFixed(2)}</td>
+            <td>
+              <a href="repairs.html?assetId=${d.asset?.assetId}&damageId=${d.damageId}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-tools"></i> Open Repair
+              </a>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      currentUser = Auth.requireAuth(['ADMIN', 'WAREHOUSE_STAFF']);
+      if (!currentUser) return;
+      Auth.initNavigation('damage');
+
+      document.getElementById('damageDate').value = new Date().toISOString().split('T')[0];
+
+      await loadAssets();
+      await loadDamages();
+
+      document.getElementById('damage-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const assetId = parseInt(document.getElementById('assetId').value);
+        const damageType = document.getElementById('damageType').value;
+        const severity = document.getElementById('severity').value;
+        const damageDate = document.getElementById('damageDate').value;
+        const estimatedCost = parseFloat(document.getElementById('estimatedCost').value);
+        const description = document.getElementById('description').value;
+
+        try {
+          await API.damages.create({
+            assetId,
+            reportedBy: currentUser.userId,
+            damageType,
+            severity,
+            damageDate,
+            estimatedCost,
+            description
+          });
+
+          showNotification('Damage incident recorded successfully!', 'success');
+          document.getElementById('damage-form').reset();
+          document.getElementById('damageDate').value = new Date().toISOString().split('T')[0];
+
+          await loadAssets();
+          await loadDamages();
+        } catch (err) {
+          // Handled
+        }
+      });
+    });
+  </script>
+</body>
+</html>

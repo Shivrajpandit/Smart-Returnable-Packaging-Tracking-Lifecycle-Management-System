@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receive Return - SRPT-LMS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div class="app-wrapper">
+    <div id="sidebar-container"></div>
+
+    <div class="main-content">
+      <div class="topbar">
+        <h1 class="page-title">Inward Asset Return Inspection</h1>
+        <div id="user-profile-badge"></div>
+      </div>
+
+      <div class="p-4">
+        
+        <div class="row g-4">
+          <!-- Return Inspection Form -->
+          <div class="col-lg-5">
+            <div class="content-card">
+              <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                <i class="bi bi-box-arrow-in-down-left text-success"></i> Receive Return Inspection
+              </h5>
+              
+              <form id="return-form">
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Select Issued Asset</label>
+                  <select id="assetId" class="form-select" required>
+                    <option value="">Choose an issued asset...</option>
+                  </select>
+                  <small class="text-muted">Only assets in 'ISSUED' status are eligible</small>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Returning Customer</label>
+                  <select id="customerId" class="form-select" required>
+                    <option value="">Select customer...</option>
+                  </select>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Return Date</label>
+                  <input type="date" id="returnDate" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Physical Condition Inspection</label>
+                  <select id="conditionStatus" class="form-select" required>
+                    <option value="GOOD">GOOD (Ready for immediate reuse -> AVAILABLE)</option>
+                    <option value="MINOR_DAMAGE">MINOR_DAMAGE (Requires basic repair -> DAMAGED)</option>
+                    <option value="MAJOR_DAMAGE">MAJOR_DAMAGE (Requires workshop overhaul -> DAMAGED)</option>
+                    <option value="UNUSABLE">UNUSABLE (Total loss / Scrap -> RETIRED)</option>
+                  </select>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label fw-semibold">Inspection Remarks</label>
+                  <textarea id="remarks" class="form-control" rows="2" placeholder="e.g. Surface scratch, hinge inspected, cleaned"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-dark w-100 py-2 fw-semibold">
+                  <i class="bi bi-clipboard-check me-1"></i> Confirm Inward Return
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Return History Table -->
+          <div class="col-lg-7">
+            <div class="content-card">
+              <h5 class="fw-bold mb-3">Recent Return Transactions</h5>
+              <div class="table-responsive">
+                <table class="table table-custom align-middle">
+                  <thead>
+                    <tr>
+                      <th>Return #</th>
+                      <th>Asset</th>
+                      <th>Customer</th>
+                      <th>Return Date</th>
+                      <th>Condition</th>
+                      <th>Received By</th>
+                    </tr>
+                  </thead>
+                  <tbody id="returns-table-body">
+                    <tr><td colspan="6" class="text-center py-4 text-muted">Loading return logs...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    let currentUser = null;
+
+    async function loadFormOptions() {
+      const issuedAssets = await API.assets.getAll({ status: 'ISSUED' });
+      const customers = await API.customers.getAll();
+
+      const assetSelect = document.getElementById('assetId');
+      assetSelect.innerHTML = `<option value="">Choose an issued asset...</option>` +
+        issuedAssets.map(a => `<option value="${a.assetId}">[${a.assetCode}] ${a.packagingType?.typeName || ''}</option>`).join('');
+
+      const custSelect = document.getElementById('customerId');
+      custSelect.innerHTML = `<option value="">Select customer...</option>` +
+        customers.map(c => `<option value="${c.customerId}">${c.companyName}</option>`).join('');
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const preAssetId = urlParams.get('assetId');
+      if (preAssetId) {
+        assetSelect.value = preAssetId;
+      }
+    }
+
+    async function loadReturnHistory() {
+      const returns = await API.returns.getAll();
+      const tbody = document.getElementById('returns-table-body');
+
+      if (returns.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No return transactions recorded yet.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = returns.slice().reverse().map(rt => `
+        <tr>
+          <td><span class="text-muted">#${rt.returnId}</span></td>
+          <td><strong class="text-primary">${rt.asset?.assetCode || 'N/A'}</strong></td>
+          <td>${rt.customer?.companyName || 'N/A'}</td>
+          <td>${rt.returnDate}</td>
+          <td><span class="badge-status badge-${rt.conditionStatus}">${rt.conditionStatus}</span></td>
+          <td><small class="text-muted">${rt.receivedBy?.name || 'Staff'}</small></td>
+        </tr>
+      `).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      currentUser = Auth.requireAuth(['ADMIN', 'WAREHOUSE_STAFF']);
+      if (!currentUser) return;
+      Auth.initNavigation('return');
+
+      document.getElementById('returnDate').value = new Date().toISOString().split('T')[0];
+
+      await loadFormOptions();
+      await loadReturnHistory();
+
+      document.getElementById('return-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const assetId = parseInt(document.getElementById('assetId').value);
+        const customerId = parseInt(document.getElementById('customerId').value);
+        const returnDate = document.getElementById('returnDate').value;
+        const conditionStatus = document.getElementById('conditionStatus').value;
+        const remarks = document.getElementById('remarks').value;
+
+        try {
+          await API.returns.create({
+            assetId,
+            customerId,
+            receivedBy: currentUser.userId,
+            returnDate,
+            conditionStatus,
+            remarks
+          });
+
+          showNotification('Asset return successfully processed!', 'success');
+          document.getElementById('return-form').reset();
+          document.getElementById('returnDate').value = new Date().toISOString().split('T')[0];
+
+          await loadFormOptions();
+          await loadReturnHistory();
+        } catch (err) {
+          // Handled by API fetch
+        }
+      });
+    });
+  </script>
+</body>
+</html>

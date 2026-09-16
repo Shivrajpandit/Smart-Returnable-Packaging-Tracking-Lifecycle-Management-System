@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asset Registry - SRPT-LMS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div class="app-wrapper">
+    <div id="sidebar-container"></div>
+
+    <div class="main-content">
+      <div class="topbar">
+        <h1 class="page-title">Packaging Asset Registry</h1>
+        <div id="user-profile-badge"></div>
+      </div>
+
+      <div class="p-4">
+        
+        <!-- Filter and Action Bar -->
+        <div class="content-card mb-4">
+          <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+              <label class="form-label small fw-bold text-muted">Search Asset Code</label>
+              <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input type="text" id="filter-search" class="form-control" placeholder="e.g. MC-PUN-001">
+              </div>
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label small fw-bold text-muted">Filter by Status</label>
+              <select id="filter-status" class="form-select">
+                <option value="">All Statuses</option>
+                <option value="AVAILABLE">AVAILABLE</option>
+                <option value="ISSUED">ISSUED</option>
+                <option value="IN_TRANSIT">IN_TRANSIT</option>
+                <option value="DAMAGED">DAMAGED</option>
+                <option value="UNDER_REPAIR">UNDER_REPAIR</option>
+                <option value="LOST">LOST</option>
+                <option value="RETIRED">RETIRED</option>
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label small fw-bold text-muted">Filter by Warehouse</label>
+              <select id="filter-warehouse" class="form-select">
+                <option value="">All Warehouses</option>
+              </select>
+            </div>
+
+            <div class="col-md-3 text-md-end">
+              <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#registerAssetModal">
+                <i class="bi bi-plus-lg me-1"></i> Register Asset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Asset Table -->
+        <div class="content-card">
+          <div class="table-responsive">
+            <table class="table table-custom align-middle">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Asset Code</th>
+                  <th>Packaging Category</th>
+                  <th>Capacity (KG)</th>
+                  <th>Base Warehouse</th>
+                  <th>Purchase Date</th>
+                  <th>Current Status</th>
+                  <th>Lifecycle Actions</th>
+                </tr>
+              </thead>
+              <tbody id="assets-table-body">
+                <tr><td colspan="8" class="text-center py-4 text-muted">Loading asset inventory...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Register Asset Modal -->
+  <div class="modal fade" id="registerAssetModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="register-asset-form">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold">Register New Reusable Asset</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Unique Asset Code</label>
+              <input type="text" class="form-control" id="assetCode" placeholder="e.g. MC-PUN-005" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Packaging Type</label>
+              <select class="form-select" id="typeId" required>
+                <option value="">Select Packaging Type...</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Assigned Warehouse Hub</label>
+              <select class="form-select" id="warehouseId" required>
+                <option value="">Select Warehouse...</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Purchase / Commission Date</label>
+              <input type="date" class="form-control" id="purchaseDate" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Register Asset</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    let packagingTypes = [];
+    let warehouses = [];
+
+    async function loadDropdowns() {
+      packagingTypes = await API.packagingTypes.getAll();
+      warehouses = await API.warehouses.getAll();
+
+      // Populate filter dropdown
+      const whFilter = document.getElementById('filter-warehouse');
+      whFilter.innerHTML = `<option value="">All Warehouses</option>` + 
+        warehouses.map(w => `<option value="${w.warehouseId}">${w.warehouseName}</option>`).join('');
+
+      // Populate modal dropdowns
+      const typeSelect = document.getElementById('typeId');
+      typeSelect.innerHTML = `<option value="">Select Packaging Type...</option>` + 
+        packagingTypes.map(t => `<option value="${t.typeId}">${t.typeName} (${t.capacityKg} kg)</option>`).join('');
+
+      const whSelect = document.getElementById('warehouseId');
+      whSelect.innerHTML = `<option value="">Select Warehouse...</option>` + 
+        warehouses.map(w => `<option value="${w.warehouseId}">${w.warehouseName}</option>`).join('');
+    }
+
+    async function loadAssets() {
+      const status = document.getElementById('filter-status').value;
+      const warehouseId = document.getElementById('filter-warehouse').value;
+      const search = document.getElementById('filter-search').value;
+
+      const assets = await API.assets.getAll({ status, warehouseId, search });
+      const tbody = document.getElementById('assets-table-body');
+
+      if (assets.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">No assets found matching the criteria.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = assets.map(a => `
+        <tr>
+          <td><span class="text-muted">#${a.assetId}</span></td>
+          <td><strong class="text-primary">${a.assetCode}</strong></td>
+          <td>${a.packagingType ? a.packagingType.typeName : 'N/A'}</td>
+          <td>${a.packagingType ? a.packagingType.capacityKg + ' kg' : '--'}</td>
+          <td>${a.warehouse ? a.warehouse.warehouseName : 'N/A'}</td>
+          <td>${a.purchaseDate}</td>
+          <td><span class="badge-status badge-${a.status}">${a.status}</span></td>
+          <td>
+            <div class="btn-group btn-group-sm">
+              <a href="asset-history.html?assetId=${a.assetId}" class="btn btn-outline-primary" title="View 360° History">
+                <i class="bi bi-clock-history"></i> History
+              </a>
+              ${a.status === 'AVAILABLE' ? `
+                <a href="issue-asset.html?assetId=${a.assetId}" class="btn btn-outline-success" title="Issue Asset">
+                  <i class="bi bi-box-arrow-up-right"></i> Issue
+                </a>
+              ` : ''}
+              ${a.status === 'ISSUED' ? `
+                <a href="return-asset.html?assetId=${a.assetId}" class="btn btn-outline-info" title="Receive Return">
+                  <i class="bi bi-box-arrow-in-down-left"></i> Return
+                </a>
+              ` : ''}
+              ${a.status === 'DAMAGED' ? `
+                <a href="repairs.html?assetId=${a.assetId}" class="btn btn-outline-warning" title="Repair Asset">
+                  <i class="bi bi-tools"></i> Repair
+                </a>
+              ` : ''}
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = Auth.requireAuth();
+      if (!user) return;
+      Auth.initNavigation('assets');
+
+      document.getElementById('purchaseDate').value = new Date().toISOString().split('T')[0];
+
+      await loadDropdowns();
+      await loadAssets();
+
+      document.getElementById('filter-status').addEventListener('change', loadAssets);
+      document.getElementById('filter-warehouse').addEventListener('change', loadAssets);
+      document.getElementById('filter-search').addEventListener('input', loadAssets);
+
+      // Handle Asset Registration
+      document.getElementById('register-asset-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const assetCode = document.getElementById('assetCode').value.trim();
+        const typeId = parseInt(document.getElementById('typeId').value);
+        const warehouseId = parseInt(document.getElementById('warehouseId').value);
+        const purchaseDate = document.getElementById('purchaseDate').value;
+
+        try {
+          await API.assets.create({ assetCode, typeId, warehouseId, purchaseDate, status: 'AVAILABLE' });
+          showNotification(`Asset '${assetCode}' registered successfully!`, 'success');
+          bootstrap.Modal.getInstance(document.getElementById('registerAssetModal')).hide();
+          document.getElementById('register-asset-form').reset();
+          await loadAssets();
+        } catch (err) {
+          // Handled by apiFetch toast
+        }
+      });
+    });
+  </script>
+</body>
+</html>

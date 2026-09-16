@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Managerial Reports - SRPT-LMS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div class="app-wrapper">
+    <div id="sidebar-container"></div>
+
+    <div class="main-content">
+      <div class="topbar">
+        <h1 class="page-title">Managerial Analytical Reports</h1>
+        <div id="user-profile-badge"></div>
+      </div>
+
+      <div class="p-4">
+        
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-pills mb-4 gap-2" id="reportTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tab-inventory-btn" data-bs-toggle="pill" data-bs-target="#tab-inventory" type="button">
+              <i class="bi bi-boxes me-1"></i> Inventory Status
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-customer-btn" data-bs-toggle="pill" data-bs-target="#tab-customer" type="button">
+              <i class="bi bi-buildings me-1"></i> Customer Outstanding
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-overdue-btn" data-bs-toggle="pill" data-bs-target="#tab-overdue" type="button">
+              <i class="bi bi-alarm me-1"></i> Overdue Return List
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-repair-btn" data-bs-toggle="pill" data-bs-target="#tab-repair" type="button">
+              <i class="bi bi-currency-rupee me-1"></i> Repair Cost Breakdown
+            </button>
+          </li>
+        </ul>
+
+        <!-- Tab Content Panes -->
+        <div class="tab-content" id="reportTabsContent">
+          
+          <!-- Tab 1: Inventory Fleet Status -->
+          <div class="tab-pane fade show active" id="tab-inventory" role="tabpanel">
+            <div class="content-card">
+              <h5 class="fw-bold mb-3">Warehouse Fleet Availability Breakdown</h5>
+              <div class="table-responsive">
+                <table class="table table-custom align-middle">
+                  <thead>
+                    <tr>
+                      <th>Asset Code</th>
+                      <th>Packaging Type</th>
+                      <th>Capacity (KG)</th>
+                      <th>Current Warehouse</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="inventory-report-body">
+                    <tr><td colspan="5" class="text-center py-4 text-muted">Loading inventory data...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: Customer Outstanding Balance -->
+          <div class="tab-pane fade" id="tab-customer" role="tabpanel">
+            <div class="content-card">
+              <h5 class="fw-bold mb-3">Customer Outstanding Return Matrix</h5>
+              <div class="table-responsive">
+                <table class="table table-custom align-middle">
+                  <thead>
+                    <tr>
+                      <th>Customer Organization</th>
+                      <th>Contact Person</th>
+                      <th>Phone</th>
+                      <th>Total Issued (Lifetime)</th>
+                      <th>Total Returned</th>
+                      <th>Currently Holding (Outstanding)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="customer-report-body">
+                    <tr><td colspan="6" class="text-center py-4 text-muted">Loading customer analytics...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 3: Overdue Report -->
+          <div class="tab-pane fade" id="tab-overdue" role="tabpanel">
+            <div class="content-card">
+              <h5 class="fw-bold mb-3">Critical Overdue Returns</h5>
+              <div class="table-responsive">
+                <table class="table table-custom align-middle">
+                  <thead>
+                    <tr>
+                      <th>Asset Code</th>
+                      <th>Packaging Type</th>
+                      <th>Holding Customer</th>
+                      <th>Phone</th>
+                      <th>Expected Due Date</th>
+                      <th>Days Overdue</th>
+                    </tr>
+                  </thead>
+                  <tbody id="overdue-report-body">
+                    <tr><td colspan="6" class="text-center py-4 text-muted">Loading overdue list...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 4: Repair Costs & Maintenance ROI -->
+          <div class="tab-pane fade" id="tab-repair" role="tabpanel">
+            <div class="content-card">
+              <h5 class="fw-bold mb-3">Workshop Maintenance & Repair Expenditure</h5>
+              <div class="table-responsive">
+                <table class="table table-custom align-middle">
+                  <thead>
+                    <tr>
+                      <th>Ticket #</th>
+                      <th>Asset Code</th>
+                      <th>Packaging Type</th>
+                      <th>Repair Date</th>
+                      <th>Repair Cost (₹)</th>
+                      <th>Status</th>
+                      <th>Remarks</th>
+                    </tr>
+                  </thead>
+                  <tbody id="repair-report-body">
+                    <tr><td colspan="7" class="text-center py-4 text-muted">Loading repair expenditures...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    async function loadReports() {
+      // 1. Inventory Report
+      const assets = await API.assets.getAll();
+      document.getElementById('inventory-report-body').innerHTML = assets.map(a => `
+        <tr>
+          <td><strong class="text-primary">${a.assetCode}</strong></td>
+          <td>${a.packagingType?.typeName || 'N/A'}</td>
+          <td>${a.packagingType?.capacityKg || 0} kg</td>
+          <td>${a.warehouse?.warehouseName || 'N/A'}</td>
+          <td><span class="badge-status badge-${a.status}">${a.status}</span></td>
+        </tr>
+      `).join('');
+
+      // 2. Customer Outstanding Report
+      const customerSummaries = await API.reports.getCustomerSummary();
+      document.getElementById('customer-report-body').innerHTML = customerSummaries.map(c => `
+        <tr>
+          <td><strong>${c.companyName}</strong></td>
+          <td>${c.contactPerson}</td>
+          <td>${c.phone}</td>
+          <td><span class="badge bg-secondary">${c.totalIssued}</span></td>
+          <td><span class="badge bg-success">${c.totalReturned}</span></td>
+          <td>
+            <span class="badge ${c.currentlyOutstanding > 0 ? 'bg-primary' : 'bg-light text-dark border'} fs-6 px-3 py-1">
+              ${c.currentlyOutstanding} Units
+            </span>
+          </td>
+        </tr>
+      `).join('');
+
+      // 3. Overdue Report
+      const overdue = await API.reports.getOverdue();
+      const overdueBody = document.getElementById('overdue-report-body');
+      if (overdue.length === 0) {
+        overdueBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-success"><i class="bi bi-check-circle me-1"></i> No overdue returns.</td></tr>`;
+      } else {
+        overdueBody.innerHTML = overdue.map(item => `
+          <tr>
+            <td><strong class="text-primary">${item.assetCode}</strong></td>
+            <td>${item.packagingTypeName}</td>
+            <td><strong>${item.customerName}</strong></td>
+            <td>${item.customerPhone}</td>
+            <td><span class="text-danger fw-semibold">${item.expectedReturnDate}</span></td>
+            <td><span class="badge bg-danger rounded-pill px-2 py-1">${item.daysOverdue} Days</span></td>
+          </tr>
+        `).join('');
+      }
+
+      // 4. Repair Costs Report
+      const repairs = await API.repairs.getAll();
+      document.getElementById('repair-report-body').innerHTML = repairs.map(r => `
+        <tr>
+          <td><span class="text-muted">#${r.repairId}</span></td>
+          <td><strong class="text-primary">${r.asset?.assetCode || 'N/A'}</strong></td>
+          <td>${r.asset?.packagingType?.typeName || 'N/A'}</td>
+          <td>${r.repairDate || 'Pending'}</td>
+          <td><strong class="text-danger">₹ ${Number(r.repairCost || 0).toFixed(2)}</strong></td>
+          <td><span class="badge bg-secondary rounded-pill">${r.repairStatus}</span></td>
+          <td><small class="text-muted">${r.remarks || '--'}</small></td>
+        </tr>
+      `).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = Auth.requireAuth(['ADMIN', 'MANAGER']);
+      if (!user) return;
+      Auth.initNavigation('reports');
+
+      await loadReports();
+    });
+  </script>
+</body>
+</html>

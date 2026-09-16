@@ -1,0 +1,206 @@
+{
+  "info": {
+    "name": "SRPT-LMS REST API Collection",
+    "_postman_id": "8f8b5774-7e04-4b55-bf15-992a6c117d91",
+    "description": "Comprehensive Postman API tests for Smart Returnable Packaging Tracking and Lifecycle Management System (SRPT-LMS)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@packaging.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": { "raw": "http://localhost:8080/api/auth/login", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Kiran Joshi\",\n  \"email\": \"kiran.j@packaging.com\",\n  \"password\": \"kiran123\",\n  \"role\": \"WAREHOUSE_STAFF\"\n}"
+            },
+            "url": { "raw": "http://localhost:8080/api/auth/register", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "auth", "register"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Dashboard & Reports",
+      "item": [
+        {
+          "name": "Get Dashboard Metrics",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:8080/api/reports/dashboard", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "reports", "dashboard"] }
+          }
+        },
+        {
+          "name": "Get Overdue Assets Report",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:8080/api/reports/overdue", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "reports", "overdue"] }
+          }
+        },
+        {
+          "name": "Get Customer Outstanding Summary",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:8080/api/reports/customer-summary", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "reports", "customer-summary"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Master Entities",
+      "item": [
+        {
+          "name": "Get All Customers",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:8080/api/customers", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "customers"] }
+          }
+        },
+        {
+          "name": "Create Customer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyName\": \"Godrej Logistics Ltd\",\n  \"contactPerson\": \"Karan Mehra\",\n  \"phone\": \"+91 98200 55667\",\n  \"email\": \"karan.m@godrej.example.com\",\n  \"address\": \"Vikhroli East, Mumbai, MH\"\n}"
+            },
+            "url": { "raw": "http://localhost:8080/api/customers", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "customers"] }
+          }
+        },
+        {
+          "name": "Get All Packaging Types",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:8080/api/packaging-types", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "packaging-types"] }
+          }
+        },
+        {
+          "name": "Get All Warehouses",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:8080/api/warehouses", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "warehouses"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Assets Management",
+      "item": [
+        {
+          "name": "Get All Assets (Filtered)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:8080/api/assets?status=AVAILABLE",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "assets"],
+              "query": [{ "key": "status", "value": "AVAILABLE" }]
+            }
+          }
+        },
+        {
+          "name": "Register New Asset",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"typeId\": 1,\n  \"warehouseId\": 1,\n  \"assetCode\": \"MC-PUN-099\",\n  \"purchaseDate\": \"2026-09-01\",\n  \"status\": \"AVAILABLE\"\n}"
+            },
+            "url": { "raw": "http://localhost:8080/api/assets", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "assets"] }
+          }
+        },
+        {
+          "name": "Get Asset 360-Degree History",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:8080/api/assets/1/history", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "assets", "1", "history"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Lifecycle Operations",
+      "item": [
+        {
+          "name": "Issue Asset",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assetId\": 1,\n  \"customerId\": 1,\n  \"issuedBy\": 2,\n  \"issueDate\": \"2026-09-16\",\n  \"expectedReturnDate\": \"2026-09-30\",\n  \"purpose\": \"Brake disc dispatch batch #770\"\n}"
+            },
+            "url": { "raw": "http://localhost:8080/api/issues", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "issues"] }
+          }
+        },
+        {
+          "name": "Return Asset (Good Condition)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assetId\": 1,\n  \"customerId\": 1,\n  \"receivedBy\": 2,\n  \"returnDate\": \"2026-09-20\",\n  \"conditionStatus\": \"GOOD\",\n  \"remarks\": \"Inspected and verified clean\"\n}"
+            },
+            "url": { "raw": "http://localhost:8080/api/returns", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "returns"] }
+          }
+        },
+        {
+          "name": "Record Damage",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assetId\": 4,\n  \"reportedBy\": 2,\n  \"damageType\": \"Latch Crack\",\n  \"severity\": \"MEDIUM\",\n  \"damageDate\": \"2026-09-16\",\n  \"estimatedCost\": 350.00,\n  \"description\": \"Side locking latch hairline fracture\"\n}"
+            },
+            "url": { "raw": "http://localhost:8080/api/damages", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "damages"] }
+          }
+        },
+        {
+          "name": "Create Repair Record",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assetId\": 4,\n  \"damageId\": 1,\n  \"repairedBy\": 2,\n  \"repairCost\": 350.00,\n  \"repairStatus\": \"IN_PROGRESS\",\n  \"remarks\": \"Welding and hinge reinforcement\"\n}"
+            },
+            "url": { "raw": "http://localhost:8080/api/repairs", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "repairs"] }
+          }
+        },
+        {
+          "name": "Complete Repair",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assetId\": 4,\n  \"repairedBy\": 2,\n  \"repairDate\": \"2026-09-17\",\n  \"repairCost\": 350.00,\n  \"repairStatus\": \"COMPLETED\",\n  \"remarks\": \"Repair finished. Quality inspection passed.\"\n}"
+            },
+            "url": { "raw": "http://localhost:8080/api/repairs/1", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "repairs", "1"] }
+          }
+        }
+      ]
+    }
+  ]
+}

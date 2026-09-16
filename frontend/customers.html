@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Management - SRPT-LMS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div class="app-wrapper">
+    <div id="sidebar-container"></div>
+
+    <div class="main-content">
+      <div class="topbar">
+        <h1 class="page-title">Customer Organization Directory</h1>
+        <div id="user-profile-badge"></div>
+      </div>
+
+      <div class="p-4">
+        
+        <!-- Action & Search Bar -->
+        <div class="content-card mb-4">
+          <div class="row g-3 align-items-center justify-content-between">
+            <div class="col-md-5">
+              <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input type="text" id="customer-search" class="form-control" placeholder="Search company, person, phone...">
+              </div>
+            </div>
+            <div class="col-md-3 text-md-end">
+              <button class="btn btn-primary" onclick="openCustomerModal()">
+                <i class="bi bi-plus-lg me-1"></i> Add New Customer
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer List Table -->
+        <div class="content-card">
+          <div class="table-responsive">
+            <table class="table table-custom align-middle">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Company Name</th>
+                  <th>Contact Person</th>
+                  <th>Phone Number</th>
+                  <th>Email</th>
+                  <th>Facility Address</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="customers-table-body">
+                <tr><td colspan="7" class="text-center py-4 text-muted">Loading customer records...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Customer Modal -->
+  <div class="modal fade" id="customerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="customer-form">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold" id="customerModalTitle">Add Customer</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="customerId">
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Company Name</label>
+              <input type="text" class="form-control" id="companyName" placeholder="e.g. Tata AutoComp Systems Ltd" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Contact Person</label>
+              <input type="text" class="form-control" id="contactPerson" placeholder="e.g. Suresh Deshmukh" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Phone Number</label>
+              <input type="text" class="form-control" id="phone" placeholder="e.g. +91 98220 11223" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Email Address</label>
+              <input type="email" class="form-control" id="email" placeholder="e.g. suresh.d@example.com" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Physical Facility Address</label>
+              <textarea class="form-control" id="address" rows="2" placeholder="MIDC Industrial Area, Pune" required></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Customer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    let customersList = [];
+
+    async function loadCustomers(search = '') {
+      customersList = await API.customers.getAll(search);
+      const tbody = document.getElementById('customers-table-body');
+
+      if (customersList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">No customer records found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = customersList.map(c => `
+        <tr>
+          <td><span class="text-muted">#${c.customerId}</span></td>
+          <td><strong>${c.companyName}</strong></td>
+          <td>${c.contactPerson}</td>
+          <td>${c.phone}</td>
+          <td><a href="mailto:${c.email}">${c.email}</a></td>
+          <td><small class="text-muted">${c.address}</small></td>
+          <td>
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-outline-primary" onclick="editCustomer(${c.customerId})"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-outline-danger" onclick="deleteCustomer(${c.customerId})"><i class="bi bi-trash"></i></button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    window.openCustomerModal = function() {
+      document.getElementById('customer-form').reset();
+      document.getElementById('customerId').value = '';
+      document.getElementById('customerModalTitle').textContent = 'Add Customer Organization';
+      new bootstrap.Modal(document.getElementById('customerModal')).show();
+    };
+
+    window.editCustomer = function(id) {
+      const c = customersList.find(item => item.customerId === id);
+      if (!c) return;
+      document.getElementById('customerId').value = c.customerId;
+      document.getElementById('companyName').value = c.companyName;
+      document.getElementById('contactPerson').value = c.contactPerson;
+      document.getElementById('phone').value = c.phone;
+      document.getElementById('email').value = c.email;
+      document.getElementById('address').value = c.address;
+      document.getElementById('customerModalTitle').textContent = 'Edit Customer Organization';
+      new bootstrap.Modal(document.getElementById('customerModal')).show();
+    };
+
+    window.deleteCustomer = async function(id) {
+      if (confirm('Are you sure you want to delete this customer?')) {
+        try {
+          await API.customers.delete(id);
+          showNotification('Customer deleted successfully!', 'success');
+          await loadCustomers();
+        } catch (err) {
+          // Handled
+        }
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = Auth.requireAuth(['ADMIN', 'MANAGER']);
+      if (!user) return;
+      Auth.initNavigation('customers');
+
+      await loadCustomers();
+
+      document.getElementById('customer-search').addEventListener('input', (e) => {
+        loadCustomers(e.target.value);
+      });
+
+      document.getElementById('customer-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('customerId').value;
+        const data = {
+          companyName: document.getElementById('companyName').value,
+          contactPerson: document.getElementById('contactPerson').value,
+          phone: document.getElementById('phone').value,
+          email: document.getElementById('email').value,
+          address: document.getElementById('address').value
+        };
+
+        try {
+          if (id) {
+            await API.customers.update(id, data);
+            showNotification('Customer updated successfully!', 'success');
+          } else {
+            await API.customers.create(data);
+            showNotification('Customer added successfully!', 'success');
+          }
+          bootstrap.Modal.getInstance(document.getElementById('customerModal')).hide();
+          await loadCustomers();
+        } catch (err) {
+          // Handled
+        }
+      });
+    });
+  </script>
+</body>
+</html>

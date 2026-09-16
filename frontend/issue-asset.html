@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Issue Asset - SRPT-LMS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div class="app-wrapper">
+    <div id="sidebar-container"></div>
+
+    <div class="main-content">
+      <div class="topbar">
+        <h1 class="page-title">Issue Packaging Asset</h1>
+        <div id="user-profile-badge"></div>
+      </div>
+
+      <div class="p-4">
+        
+        <div class="row g-4">
+          <!-- Issue Form -->
+          <div class="col-lg-5">
+            <div class="content-card">
+              <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                <i class="bi bi-box-arrow-up-right text-primary"></i> Outward Issue Dispatch
+              </h5>
+              
+              <form id="issue-form">
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Select Available Asset</label>
+                  <select id="assetId" class="form-select" required>
+                    <option value="">Choose an available asset...</option>
+                  </select>
+                  <small class="text-muted">Only assets in 'AVAILABLE' status are listed</small>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Receiving Customer</label>
+                  <select id="customerId" class="form-select" required>
+                    <option value="">Select customer organization...</option>
+                  </select>
+                </div>
+
+                <div class="row g-2 mb-3">
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold">Issue Date</label>
+                    <input type="date" id="issueDate" class="form-control" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold">Expected Return Date</label>
+                    <input type="date" id="expectedReturnDate" class="form-control" required>
+                  </div>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label fw-semibold">Dispatch Purpose / Batch Reference</label>
+                  <textarea id="purpose" class="form-control" rows="2" placeholder="e.g. Engine components transit batch #205"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                  <i class="bi bi-check-circle me-1"></i> Confirm Dispatch & Issue
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Active Issues Table -->
+          <div class="col-lg-7">
+            <div class="content-card">
+              <h5 class="fw-bold mb-3">Recent Issue Transactions</h5>
+              <div class="table-responsive">
+                <table class="table table-custom align-middle">
+                  <thead>
+                    <tr>
+                      <th>Issue #</th>
+                      <th>Asset</th>
+                      <th>Customer</th>
+                      <th>Issue Date</th>
+                      <th>Expected Return</th>
+                      <th>Issued By</th>
+                    </tr>
+                  </thead>
+                  <tbody id="issues-table-body">
+                    <tr><td colspan="6" class="text-center py-4 text-muted">Loading issue history...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    let currentUser = null;
+
+    async function loadFormOptions() {
+      const availableAssets = await API.assets.getAll({ status: 'AVAILABLE' });
+      const customers = await API.customers.getAll();
+
+      const assetSelect = document.getElementById('assetId');
+      assetSelect.innerHTML = `<option value="">Choose an available asset...</option>` +
+        availableAssets.map(a => `<option value="${a.assetId}">[${a.assetCode}] ${a.packagingType?.typeName || ''} (${a.warehouse?.warehouseName || ''})</option>`).join('');
+
+      const custSelect = document.getElementById('customerId');
+      custSelect.innerHTML = `<option value="">Select customer organization...</option>` +
+        customers.map(c => `<option value="${c.customerId}">${c.companyName} (${c.contactPerson})</option>`).join('');
+
+      // Auto-select asset if passed via URL param
+      const urlParams = new URLSearchParams(window.location.search);
+      const preAssetId = urlParams.get('assetId');
+      if (preAssetId) {
+        assetSelect.value = preAssetId;
+      }
+    }
+
+    async function loadIssueHistory() {
+      const issues = await API.issues.getAll();
+      const tbody = document.getElementById('issues-table-body');
+
+      if (issues.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No issue transactions found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = issues.slice().reverse().map(it => `
+        <tr>
+          <td><span class="text-muted">#${it.issueId}</span></td>
+          <td><strong class="text-primary">${it.asset?.assetCode || 'N/A'}</strong></td>
+          <td>${it.customer?.companyName || 'N/A'}</td>
+          <td>${it.issueDate}</td>
+          <td><span class="fw-semibold">${it.expectedReturnDate}</span></td>
+          <td><small class="text-muted">${it.issuedBy?.name || 'Staff'}</small></td>
+        </tr>
+      `).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      currentUser = Auth.requireAuth(['ADMIN', 'WAREHOUSE_STAFF']);
+      if (!currentUser) return;
+      Auth.initNavigation('issue');
+
+      const today = new Date().toISOString().split('T')[0];
+      const nextWeek = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      document.getElementById('issueDate').value = today;
+      document.getElementById('expectedReturnDate').value = nextWeek;
+
+      await loadFormOptions();
+      await loadIssueHistory();
+
+      document.getElementById('issue-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const assetId = parseInt(document.getElementById('assetId').value);
+        const customerId = parseInt(document.getElementById('customerId').value);
+        const issueDate = document.getElementById('issueDate').value;
+        const expectedReturnDate = document.getElementById('expectedReturnDate').value;
+        const purpose = document.getElementById('purpose').value;
+
+        try {
+          await API.issues.create({
+            assetId,
+            customerId,
+            issuedBy: currentUser.userId,
+            issueDate,
+            expectedReturnDate,
+            purpose
+          });
+
+          showNotification('Asset successfully issued to customer!', 'success');
+          document.getElementById('issue-form').reset();
+          document.getElementById('issueDate').value = today;
+          document.getElementById('expectedReturnDate').value = nextWeek;
+
+          await loadFormOptions();
+          await loadIssueHistory();
+        } catch (err) {
+          // Toast handled by API fetch
+        }
+      });
+    });
+  </script>
+</body>
+</html>
