@@ -4,7 +4,7 @@ A complete beginner-friendly full-stack DBMS BTech capstone project built with *
 
 ---
 
-## 📋 System Architecture
+## 📋 System Architecture & End-to-End Data Flow
 
 ```
 [ Frontend: HTML5 / CSS3 / Bootstrap 5 / Vanilla JS Fetch API ]
@@ -17,6 +17,157 @@ A complete beginner-friendly full-stack DBMS BTech capstone project built with *
                           ▼
 [ Database: MySQL 8.x (10 Normalized 3NF Tables & Views) ]
 ```
+
+---
+
+## 🔄 Project Data Flow Chart (Where Data Originates & Goes)
+
+### 1. End-to-End System Data Pipeline
+The following flowchart illustrates the complete journey of data from user actions on the browser to database persistence and back to analytical dashboards.
+
+```mermaid
+flowchart TD
+    %% Actors
+    subgraph Users ["👤 User Personas"]
+        Admin["👑 System Admin"]
+        Staff["👷 Warehouse Staff"]
+        Manager["👔 Logistics Manager"]
+    end
+
+    %% Frontend UI Layer
+    subgraph UI ["🌐 Client Web Interface (HTML5 / Bootstrap 5 / JS)"]
+        LoginPage["login.html (Auth Portal)"]
+        AssetPages["assets.html / packaging-types.html (Catalog)"]
+        OpsPages["issue-asset.html / return-asset.html (Operations)"]
+        MaintPages["damage.html / repairs.html (Maintenance)"]
+        DashPage["dashboard.html / reports.html (Analytics)"]
+        AuditPage["asset-history.html (360° Audit Trail)"]
+    end
+
+    %% REST API Layer
+    subgraph API ["⚙️ Spring Boot REST Controllers (HTTP / JSON)"]
+        AuthController["AuthController (/api/auth)"]
+        AssetController["AssetController (/api/assets)"]
+        IssueController["IssueController (/api/issues)"]
+        ReturnController["ReturnController (/api/returns)"]
+        DamageController["DamageController (/api/damages)"]
+        RepairController["RepairController (/api/repairs)"]
+        ReportController["ReportController (/api/reports)"]
+        HistoryController["AssetHistoryController (/api/assets/{id}/history)"]
+    end
+
+    %% Service / Business Logic Layer
+    subgraph Service ["🧠 Business Logic & State Machine Service Layer"]
+        AuthService["AuthService\n(BCrypt Hash Verification)"]
+        AssetService["AssetService\n(Commissioning & Status Check)"]
+        IssueService["IssueService\n(State: AVAILABLE ➔ ISSUED\n+ Auto-log Outward Movement)"]
+        ReturnService["ReturnService\n(Condition Evaluation\n+ Auto-log Inward Movement)"]
+        RepairService["RepairService\n(State: DAMAGED ➔ UNDER_REPAIR ➔ AVAILABLE\n+ Cost Accumulation)"]
+        ReportService["ReportService\n(Overdue Calc & Aggregate KPIs)"]
+    end
+
+    %% Database Storage Layer
+    subgraph Database ["🗄️ MySQL 8.0 Database (3NF Tables)"]
+        T_Users[("users")]
+        T_Masters[("customers / packaging_types / warehouses")]
+        T_Assets[("assets")]
+        T_Issues[("issue_transactions")]
+        T_Returns[("return_transactions")]
+        T_Damages[("damage_records")]
+        T_Repairs[("repair_records")]
+        T_Movements[("asset_movements")]
+    end
+
+    %% Flow Connections: Users to UI
+    Admin -->|"Manage Masters & Users"| LoginPage & AssetPages
+    Staff -->|"Issue, Return, Damage, Repairs"| OpsPages & MaintPages
+    Manager -->|"View KPIs, Overdue, Cost Reports"| DashPage & AuditPage
+
+    %% UI to API
+    LoginPage -->|"POST Credentials"| AuthController
+    AssetPages -->|"GET / POST Asset Data"| AssetController
+    OpsPages -->|"POST Issue / Return Payloads"| IssueController & ReturnController
+    MaintPages -->|"POST Damage / Repair Payloads"| DamageController & RepairController
+    DashPage -->|"GET Metrics & Filters"| ReportController
+    AuditPage -->|"GET Asset Timeline"| HistoryController
+
+    %% API to Service Layer
+    AuthController --> AuthService
+    AssetController --> AssetService
+    IssueController --> IssueService
+    ReturnController --> ReturnService
+    DamageController --> RepairService
+    RepairController --> RepairService
+    ReportController --> ReportService
+    HistoryController --> AssetService
+
+    %% Service Layer to Database
+    AuthService <-->|"Query user & verify password"| T_Users
+    AssetService <-->|"CRUD Assets & Masters"| T_Assets & T_Masters
+    IssueService -->|"1. Set status = ISSUED"| T_Assets
+    IssueService -->|"2. Insert issue record"| T_Issues
+    IssueService -->|"3. Insert movement (Origin ➔ Customer)"| T_Movements
+
+    ReturnService -->|"1. Update issue return date"| T_Issues
+    ReturnService -->|"2. Insert return transaction"| T_Returns
+    ReturnService -->|"3. Insert movement (Customer ➔ Warehouse)"| T_Movements
+    ReturnService -->|"4. Update status (AVAILABLE / DAMAGED / RETIRED)"| T_Assets
+    ReturnService -.->|"5. If Damaged ➔ Auto-create damage log"| T_Damages
+
+    RepairService -->|"1. Log damage / repair ticket"| T_Damages & T_Repairs
+    RepairService -->|"2. Transition: DAMAGED ➔ UNDER_REPAIR ➔ AVAILABLE"| T_Assets
+
+    ReportService <-->|"Aggregate queries, compute overdue, calculate ROI"| T_Assets & T_Issues & T_Returns & T_Repairs & T_Damages
+
+    %% Response Flow (Feedback)
+    Database -.->|"Entities / ResultSets"| Service
+    Service -.->|"DTO Responses"| API
+    API -.->|"JSON Data"| UI
+```
+
+---
+
+### 2. Operational Asset Lifecycle & Data Movement Flow
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> REGISTRATION: Admin/Staff registers packaging unit
+    REGISTRATION --> AVAILABLE: Stored in 'assets' table
+
+    AVAILABLE --> ISSUED: Staff issues asset to Customer\n(Writes 'issue_transactions' + 'asset_movements')
+    ISSUED --> INSPECTION: Customer returns asset\n(Writes 'return_transactions' + 'asset_movements')
+
+    state INSPECTION {
+        direction TB
+        ConditionCheck --> GoodCondition: Condition: GOOD
+        ConditionCheck --> DamagedCondition: Condition: MINOR/MAJOR
+        ConditionCheck --> ScrapCondition: Condition: UNUSABLE
+    }
+
+    GoodCondition --> AVAILABLE: Set status='AVAILABLE' (Ready for reuse)
+    DamagedCondition --> DAMAGED: Set status='DAMAGED'\n(Writes 'damage_records')
+    ScrapCondition --> RETIRED: Set status='RETIRED'\n(Permanent decommission)
+
+    DAMAGED --> UNDER_REPAIR: Workshop initiates repair\n(Writes 'repair_records')
+    UNDER_REPAIR --> AVAILABLE: Repair finished & cost recorded\n(Set status='AVAILABLE')
+    RETIRED --> [*]
+```
+
+---
+
+### 3. Data Routing Matrix (From Where ➔ To Where)
+
+| # | Action / Event | Origin (From Where) | Destination (To Where) | Data Payload Carried | Database Tables Modified / Queried |
+|---|---|---|---|---|---|
+| **1** | **User Login** | Browser Login Form | `AuthController` $\rightarrow$ `AuthService` | Email, Plain Password | Queries `users` table, returns JWT/Role info |
+| **2** | **Asset Commissioning** | Asset Creation Form | `AssetController` $\rightarrow$ `AssetService` | Code, Type ID, Warehouse ID, Capacity, Purchase Cost | Inserts into `assets` (Status: `AVAILABLE`) |
+| **3** | **Asset Issue (Outward)** | Issue Asset Form | `IssueController` $\rightarrow$ `IssueService` | Asset ID, Customer ID, Warehouse ID, Expected Return Date | Updates `assets.status='ISSUED'`, Inserts `issue_transactions`, Inserts `asset_movements` (Warehouse $\rightarrow$ Customer) |
+| **4** | **Asset Return (Inward)** | Return Asset Form | `ReturnController` $\rightarrow$ `ReturnService` | Issue ID, Return Date, Condition (`GOOD`/`DAMAGED`/`UNUSABLE`), Notes | Updates `issue_transactions`, Inserts `return_transactions`, Inserts `asset_movements` (Customer $\rightarrow$ Warehouse), Updates `assets.status` |
+| **5** | **Damage Logging** | Inspection / Return | `DamageController` $\rightarrow$ `RepairService` | Asset ID, Damage Type, Severity, Estimated Cost | Inserts `damage_records`, Updates `assets.status='DAMAGED'` |
+| **6** | **Repair Completion** | Repair Workshop Form | `RepairController` $\rightarrow$ `RepairService` | Damage ID, Workshop Name, Actual Cost, Resolution Notes | Inserts/Updates `repair_records`, Updates `assets.status='AVAILABLE'` |
+| **7** | **360° Asset History** | Asset Timeline Page | `AssetHistoryController` | Asset ID | Joins `assets`, `issue_transactions`, `return_transactions`, `damage_records`, `repair_records`, `asset_movements` |
+| **8** | **Manager Reports & KPIs** | Dashboard & Reports | `ReportController` $\rightarrow$ `ReportService` | Date Range, Warehouse ID, Filter Criteria | Aggregate queries over `assets`, `issue_transactions`, `repair_records` for Overdue & Cost analytics |
 
 ---
 

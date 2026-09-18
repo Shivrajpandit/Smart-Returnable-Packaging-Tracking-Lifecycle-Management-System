@@ -53,7 +53,22 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 
 ---
 
-## 📽️ Slide 5: Database Design & 3NF Normalization
+## 📽️ Slide 5: End-to-End Data Flow (Where Data Goes)
+- **Originating Point (UI):** User submits form (e.g. Issue Asset, Return Asset, Damage Report).
+- **API Transport:** Browser dispatches async HTTP POST/GET requests with JSON payload to Spring Boot REST Controllers.
+- **Service & State Engine:** `Service` layer validates state transitions, executes business logic, and prepares entity graphs.
+- **Data Persistence (MySQL 3NF):**
+  - **Issue Flow:** Writes `issue_transactions`, updates `assets.status='ISSUED'`, logs `asset_movements` (Origin $\rightarrow$ Customer).
+  - **Return Flow:** Writes `return_transactions`, logs `asset_movements` (Customer $\rightarrow$ Warehouse), updates `assets.status` to `AVAILABLE`, `DAMAGED`, or `RETIRED`.
+  - **Repair Flow:** Writes `repair_records`, records maintenance costs, returns asset to `AVAILABLE`.
+- **Feedback & Visual Loop:** MySQL entities flow back as DTOs $\rightarrow$ JSON response $\rightarrow$ dynamic DOM rendering and KPI chart updates.
+
+> **🗣️ Speaker Notes:**  
+> *"When looking at the data lifecycle, data flows from user actions in the browser, through REST controllers and service state engines, down to MySQL tables. Every operational action also triggers automated movement tracking and audit logging."*
+
+---
+
+## 📽️ Slide 6: Database Design & 3NF Normalization
 - **Database Name:** `packaging_tracking` (10 Normalized Tables)
 - **Core Entities:** `users`, `customers`, `packaging_types`, `warehouses`, `assets`, `issue_transactions`, `return_transactions`, `damage_records`, `repair_records`, `asset_movements`.
 - **Normalization Proof:**
@@ -63,7 +78,7 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 
 ---
 
-## 📽️ Slide 6: Entity-Relationship (ER) Overview
+## 📽️ Slide 7: Entity-Relationship (ER) Overview
 - **Key Relationships:**
   - `packaging_types` (1) ──── (M) `assets`
   - `warehouses` (1) ──── (M) `assets`
@@ -77,7 +92,7 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 
 ---
 
-## 📽️ Slide 7: Asset Lifecycle State Machine
+## 📽️ Slide 8: Asset Lifecycle State Machine
 
 ```
    [ REGISTRATION ]
@@ -108,7 +123,7 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 
 ---
 
-## 📽️ Slide 8: Role-Based Access Control (RBAC)
+## 📽️ Slide 9: Role-Based Access Control (RBAC)
 - **1. ADMIN:**
   - Manage users, customers, packaging types, and warehouse master data.
 - **2. WAREHOUSE STAFF:**
@@ -119,7 +134,7 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 
 ---
 
-## 📽️ Slide 9: Advanced DBMS Concepts Demonstrated
+## 📽️ Slide 10: Advanced DBMS Concepts Demonstrated
 - **Complex Multi-Table Joins:** Joining 4 tables (`issue_transactions`, `assets`, `customers`, `users`) to construct dispatch cards.
 - **Outer Joins & Grouping:** `LEFT JOIN` on customers to calculate net outstanding assets.
 - **Aggregation & Having:** `HAVING COUNT(a.asset_id) >= 3` for fleet density analysis.
@@ -128,7 +143,7 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 
 ---
 
-## 📽️ Slide 10: Live Demonstration Flow
+## 📽️ Slide 11: Live Demonstration Flow
 - **Step 1:** Admin logs in $\rightarrow$ Reviews 8 real-time KPI cards.
 - **Step 2:** Register a new asset: `MC-PUN-555` (Collapsible Metal Container) $\rightarrow$ Status is `AVAILABLE`.
 - **Step 3:** Warehouse Staff issues asset to `Tata AutoComp Systems Ltd` $\rightarrow$ Status updates to `ISSUED`.
@@ -139,7 +154,7 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 
 ---
 
-## 📽️ Slide 11: Technology Stack Summary
+## 📽️ Slide 12: Technology Stack Summary
 | Component | Technology Used | Key Benefits |
 |---|---|---|
 | **Frontend** | HTML5, CSS3, Bootstrap 5, JS Fetch API | Fast, responsive industrial UI |
@@ -150,7 +165,7 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 
 ---
 
-## 📽️ Slide 12: Conclusion & Future Scope
+## 📽️ Slide 13: Conclusion & Future Scope
 - **Project Achievements:**
   - Successfully built a complete end-to-end full-stack asset tracking solution.
   - Eliminated manual paperwork and spreadsheets with zero data redundancy.
