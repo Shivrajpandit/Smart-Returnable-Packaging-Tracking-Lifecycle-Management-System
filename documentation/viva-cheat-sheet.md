@@ -5,6 +5,7 @@
 ---
 
 ## 1. Project At A Glance
+
 * **Project Name:** Smart Returnable Packaging Tracking and Lifecycle Management System (SRPT-LMS)
 * **Goal:** Replace manual registers with a centralized 3NF DBMS to track returnable containers across manufacturing, warehouse, and customer hubs.
 * **Tech Stack:**
@@ -15,6 +16,7 @@
 ---
 
 ## 2. 10 Core Tables & Normalization (3NF)
+
 * **Tables:** `users`, `customers`, `packaging_types`, `warehouses`, `assets`, `issue_transactions`, `return_transactions`, `damage_records`, `repair_records`, `asset_movements`.
 * **1NF:** Atomic values, PK on all tables (`user_id`, `asset_id`, etc.), no repeating groups.
 * **2NF:** 1NF + No partial dependencies on composite keys (all tables use single surrogate PKs).
@@ -31,7 +33,7 @@ $$\text{Registration} \xrightarrow{} \mathbf{AVAILABLE} \xrightarrow[\text{Asset
 ## 4. Key SQL Concepts & Queries
 
 | Concept | Explanation | Example from Code |
-|---|---|---|
+| --- | --- | --- |
 | **Multi-Table Join** | Joins 4 tables for issue details | `FROM issue_transactions it JOIN assets a ON it.asset_id=a.asset_id JOIN customers c ON it.customer_id=c.customer_id JOIN users u ON it.issued_by=u.user_id` |
 | **Outer Join** | Shows all customers even with 0 issues | `FROM customers c LEFT JOIN issue_transactions it ON c.customer_id = it.customer_id` |
 | **Group By & Having** | Filter categories with $\ge 3$ assets | `GROUP BY pt.type_id HAVING COUNT(a.asset_id) >= 3` |
@@ -42,6 +44,7 @@ $$\text{Registration} \xrightarrow{} \mathbf{AVAILABLE} \xrightarrow[\text{Asset
 ---
 
 ## 5. Security & Architecture
+
 * **Layered Architecture:** `Controller` (HTTP routes) $\rightarrow$ `Service` (Business rules & transactions) $\rightarrow$ `Repository` (JPA/Hibernate) $\rightarrow$ `Database` (MySQL).
 * **Password Encryption:** Passwords hashed using **BCrypt** salt hashing algorithm (`BCryptPasswordEncoder`).
 * **Roles (RBAC):**
@@ -61,6 +64,7 @@ $$\text{Registration} \xrightarrow{} \mathbf{AVAILABLE} \xrightarrow[\text{Asset
 ---
 
 ## 7. Golden Viva Rapid-Fire Answers
+
 * **Why use `@Transactional`?** Ensures Atomicity: all database operations (updating asset status + logging movement) succeed together or rollback completely if an error occurs.
 * **Why use Database Views?** Simplifies complex joins into a reusable virtual table and protects underlying schema.
 * **Why use Surrogate Keys?** Auto-increment integers (`asset_id`) provide immutable primary keys unaffected by business changes to `asset_code`.

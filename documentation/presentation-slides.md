@@ -5,6 +5,7 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 ---
 
 ## 📽️ Slide 1: Title Slide
+
 - **Project Title:** Smart Returnable Packaging Tracking and Lifecycle Management System (SRPT-LMS)
 - **Subtitle:** An Enterprise Full-Stack Web Application Powered by 3NF Relational DBMS
 - **Department:** Department of Computer Science & Engineering / Information Technology
@@ -17,6 +18,7 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 ---
 
 ## 📽️ Slide 2: Problem Statement & Industrial Context
+
 - **Industrial Challenge:**
   - Automotive and logistics supply chains use high-value reusable packaging (collapsible steel containers, HDPE crates, Euro pallets, chemical drums).
   - Tracking is traditionally done via manual logbooks, spreadsheets, and phone calls.
@@ -32,6 +34,7 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 ---
 
 ## 📽️ Slide 3: Project Objectives
+
 - ✅ **Complete Asset Lifecycle State Machine:** Track containers from Commissioning $\rightarrow$ Available $\rightarrow$ Issued $\rightarrow$ Inspection $\rightarrow$ Damage $\rightarrow$ Repair $\rightarrow$ Ready for Reuse.
 - ✅ **Automated Overdue Return Engine:** Dynamically calculate overdue durations and identify high-risk delays.
 - ✅ **Centralized Multi-Warehouse Management:** Monitor fleet distribution across regional logistics hubs.
@@ -41,6 +44,7 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 ---
 
 ## 📽️ Slide 4: System Architecture (3-Tier Layered Design)
+
 - **Client Tier:** HTML5, CSS3, Bootstrap 5, Vanilla JavaScript ES6 (Fetch API).
 - **Application Tier:** Java 17, Spring Boot 3.2, Spring Web, Spring Data JPA / Hibernate, Spring Security Crypto.
 - **Database Tier:** MySQL 8.0+ Community Server (InnoDB Engine).
@@ -54,6 +58,7 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 ---
 
 ## 📽️ Slide 5: End-to-End Data Flow (Where Data Goes)
+
 - **Originating Point (UI):** User submits form (e.g. Issue Asset, Return Asset, Damage Report).
 - **API Transport:** Browser dispatches async HTTP POST/GET requests with JSON payload to Spring Boot REST Controllers.
 - **Service & State Engine:** `Service` layer validates state transitions, executes business logic, and prepares entity graphs.
@@ -69,6 +74,7 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 ---
 
 ## 📽️ Slide 6: Database Design & 3NF Normalization
+
 - **Database Name:** `packaging_tracking` (10 Normalized Tables)
 - **Core Entities:** `users`, `customers`, `packaging_types`, `warehouses`, `assets`, `issue_transactions`, `return_transactions`, `damage_records`, `repair_records`, `asset_movements`.
 - **Normalization Proof:**
@@ -79,6 +85,7 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 ---
 
 ## 📽️ Slide 7: Entity-Relationship (ER) Overview
+
 - **Key Relationships:**
   - `packaging_types` (1) ──── (M) `assets`
   - `warehouses` (1) ──── (M) `assets`
@@ -94,7 +101,7 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 
 ## 📽️ Slide 8: Asset Lifecycle State Machine
 
-```
+```text
    [ REGISTRATION ]
           │
           ▼
@@ -124,6 +131,7 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 ---
 
 ## 📽️ Slide 9: Role-Based Access Control (RBAC)
+
 - **1. ADMIN:**
   - Manage users, customers, packaging types, and warehouse master data.
 - **2. WAREHOUSE STAFF:**
@@ -135,6 +143,7 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 ---
 
 ## 📽️ Slide 10: Advanced DBMS Concepts Demonstrated
+
 - **Complex Multi-Table Joins:** Joining 4 tables (`issue_transactions`, `assets`, `customers`, `users`) to construct dispatch cards.
 - **Outer Joins & Grouping:** `LEFT JOIN` on customers to calculate net outstanding assets.
 - **Aggregation & Having:** `HAVING COUNT(a.asset_id) >= 3` for fleet density analysis.
@@ -144,6 +153,7 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 ---
 
 ## 📽️ Slide 11: Live Demonstration Flow
+
 - **Step 1:** Admin logs in $\rightarrow$ Reviews 8 real-time KPI cards.
 - **Step 2:** Register a new asset: `MC-PUN-555` (Collapsible Metal Container) $\rightarrow$ Status is `AVAILABLE`.
 - **Step 3:** Warehouse Staff issues asset to `Tata AutoComp Systems Ltd` $\rightarrow$ Status updates to `ISSUED`.
@@ -155,8 +165,9 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 ---
 
 ## 📽️ Slide 12: Technology Stack Summary
+
 | Component | Technology Used | Key Benefits |
-|---|---|---|
+| --- | --- | --- |
 | **Frontend** | HTML5, CSS3, Bootstrap 5, JS Fetch API | Fast, responsive industrial UI |
 | **Backend** | Java 17, Spring Boot 3.2, REST API | Scalable, clean layered architecture |
 | **Persistence** | Spring Data JPA, Hibernate ORM | Object-relational mapping, eliminates JDBC boilerplate |
@@ -166,6 +177,7 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 ---
 
 ## 📽️ Slide 13: Conclusion & Future Scope
+
 - **Project Achievements:**
   - Successfully built a complete end-to-end full-stack asset tracking solution.
   - Eliminated manual paperwork and spreadsheets with zero data redundancy.
@@ -177,5 +189,6 @@ Use this complete 12-slide guide for preparing your Microsoft PowerPoint / Googl
 
 ---
 
-### 🎓 Thank You!
+### 🎓 Thank You
+
 **Open for Questions & DBMS Viva Discussion.**

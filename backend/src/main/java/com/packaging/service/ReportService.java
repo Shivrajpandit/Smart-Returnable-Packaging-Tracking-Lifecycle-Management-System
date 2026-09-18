@@ -21,21 +21,18 @@ public class ReportService {
     private final IssueTransactionRepository issueRepository;
     private final ReturnTransactionRepository returnRepository;
     private final RepairRecordRepository repairRepository;
-    private final DamageRecordRepository damageRepository;
 
     @Autowired
     public ReportService(AssetRepository assetRepository,
                          CustomerRepository customerRepository,
                          IssueTransactionRepository issueRepository,
                          ReturnTransactionRepository returnRepository,
-                         RepairRecordRepository repairRepository,
-                         DamageRecordRepository damageRepository) {
+                         RepairRecordRepository repairRepository) {
         this.assetRepository = assetRepository;
         this.customerRepository = customerRepository;
         this.issueRepository = issueRepository;
         this.returnRepository = returnRepository;
         this.repairRepository = repairRepository;
-        this.damageRepository = damageRepository;
     }
 
     public DashboardMetrics getDashboardMetrics() {
