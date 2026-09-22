@@ -66,7 +66,7 @@
         assets.map(a => `<option value="${a.assetId}">[${a.assetCode}] ${a.packagingType?.typeName || ''} - Status: ${a.status}</option>`).join('');
 
       const urlParams = new URLSearchParams(window.location.search);
-      const preAssetId = urlParams.get('assetId') || (assets.length > 0 ? assets[0].assetId : null);
+      const preAssetId = urlParams.get('assetId') || urlParams.get('id') || (assets.length > 0 ? assets[0].assetId : null);
 
       if (preAssetId) {
         select.value = preAssetId;

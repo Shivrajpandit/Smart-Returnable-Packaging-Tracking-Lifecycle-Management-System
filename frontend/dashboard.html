@@ -27,18 +27,17 @@
       <!-- Main Body Container -->
       <div class="p-4">
         
-        <!-- Welcome Alert with Status Notice -->
-        <div class="alert alert-primary border-0 shadow-sm d-flex align-items-center justify-content-between mb-4">
+        <!-- Welcome Alert with Dynamic Status Notice -->
+        <div class="alert alert-primary border-0 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4" id="welcome-alert">
           <div class="d-flex align-items-center gap-3">
-            <i class="bi bi-shield-check fs-3"></i>
+            <i class="bi bi-shield-check fs-3 text-primary"></i>
             <div>
-              <div class="fw-bold">Smart Returnable Packaging Core Engine Active</div>
-              <small class="text-secondary">Tracking multi-warehouse assets and active customer circulation</small>
+              <div class="fw-bold" id="welcome-title">Smart Returnable Packaging Core Engine Active</div>
+              <small class="text-secondary" id="welcome-subtitle">Tracking multi-warehouse assets and active customer circulation</small>
             </div>
           </div>
-          <div class="d-flex gap-2">
-            <a href="issue-asset.html" class="btn btn-primary btn-sm"><i class="bi bi-box-arrow-up-right me-1"></i> Issue Asset</a>
-            <a href="return-asset.html" class="btn btn-dark btn-sm"><i class="bi bi-box-arrow-in-down-left me-1"></i> Receive Return</a>
+          <div class="d-flex flex-wrap gap-2" id="welcome-actions">
+            <!-- Populated via JavaScript -->
           </div>
         </div>
 
@@ -179,24 +178,9 @@
 
           <div class="col-lg-4">
             <div class="content-card">
-              <h5 class="fw-bold mb-3">Quick Lifecycle Actions</h5>
-              <div class="d-grid gap-2">
-                <a href="assets.html" class="btn btn-outline-primary text-start p-3">
-                  <div class="fw-bold"><i class="bi bi-plus-circle me-2"></i> Register New Asset</div>
-                  <small class="text-muted">Add new containers or pallets to warehouse</small>
-                </a>
-                <a href="damage.html" class="btn btn-outline-warning text-start p-3">
-                  <div class="fw-bold"><i class="bi bi-exclamation-triangle me-2"></i> Record Damage Incident</div>
-                  <small class="text-muted">Log cracks, bends or missing parts</small>
-                </a>
-                <a href="repairs.html" class="btn btn-outline-secondary text-start p-3">
-                  <div class="fw-bold"><i class="bi bi-wrench-adjustable me-2"></i> Manage Repair Tickets</div>
-                  <small class="text-muted">Track workshop repairs and costs</small>
-                </a>
-                <a href="reports.html" class="btn btn-outline-dark text-start p-3">
-                  <div class="fw-bold"><i class="bi bi-file-earmark-bar-graph me-2"></i> View Analytics & Reports</div>
-                  <small class="text-muted">Download summaries for management</small>
-                </a>
+              <h5 class="fw-bold mb-3" id="quick-actions-heading">Quick Actions</h5>
+              <div class="d-grid gap-2" id="quick-actions-container">
+                <!-- Dynamically populated based on role -->
               </div>
             </div>
           </div>
@@ -215,8 +199,102 @@
       if (!user) return;
       Auth.initNavigation('dashboard');
 
+      // 1. Role-specific Dashboard Customizations
+      const pageTitleEl = document.querySelector('.page-title');
+      const welcomeTitleEl = document.getElementById('welcome-title');
+      const welcomeSubtitleEl = document.getElementById('welcome-subtitle');
+      const welcomeActionsEl = document.getElementById('welcome-actions');
+      const quickActionsHeadingEl = document.getElementById('quick-actions-heading');
+      const quickActionsEl = document.getElementById('quick-actions-container');
+
+      if (user.role === 'ADMIN') {
+        pageTitleEl.innerHTML = '<i class="bi bi-shield-lock-fill text-danger me-2"></i>Executive Administration Dashboard';
+        welcomeTitleEl.innerHTML = `Welcome, <strong>${user.name}</strong> (System Administrator)`;
+        welcomeSubtitleEl.textContent = 'Full administrative control over assets, warehouses, customers, and user permissions.';
+        welcomeActionsEl.innerHTML = `
+          <a href="issue-asset.html" class="btn btn-primary btn-sm"><i class="bi bi-box-arrow-up-right me-1"></i> Issue Asset</a>
+          <a href="return-asset.html" class="btn btn-dark btn-sm"><i class="bi bi-box-arrow-in-down-left me-1"></i> Receive Return</a>
+          <a href="reports.html" class="btn btn-outline-primary btn-sm"><i class="bi bi-bar-chart-fill me-1"></i> Reports</a>
+        `;
+        quickActionsHeadingEl.textContent = 'Admin Quick Actions';
+        quickActionsEl.innerHTML = `
+          <a href="assets.html" class="btn btn-outline-primary text-start p-3">
+            <div class="fw-bold"><i class="bi bi-plus-circle me-2"></i> Register New Asset</div>
+            <small class="text-muted">Add new containers or pallets to warehouse</small>
+          </a>
+          <a href="users.html" class="btn btn-outline-secondary text-start p-3">
+            <div class="fw-bold"><i class="bi bi-people me-2"></i> Manage User Accounts</div>
+            <small class="text-muted">Create, edit, or grant permissions to staff</small>
+          </a>
+          <a href="repairs.html" class="btn btn-outline-warning text-start p-3">
+            <div class="fw-bold"><i class="bi bi-wrench-adjustable me-2"></i> Workshop Repairs</div>
+            <small class="text-muted">Audit maintenance activities and costs</small>
+          </a>
+          <a href="reports.html" class="btn btn-outline-dark text-start p-3">
+            <div class="fw-bold"><i class="bi bi-file-earmark-bar-graph me-2"></i> Management Analytics</div>
+            <small class="text-muted">View financial & overdue summary reports</small>
+          </a>
+        `;
+      } else if (user.role === 'WAREHOUSE_STAFF') {
+        pageTitleEl.innerHTML = '<i class="bi bi-speedometer2 text-primary me-2"></i>Warehouse Floor Operations Dashboard';
+        welcomeTitleEl.innerHTML = `Welcome, <strong>${user.name}</strong> (Warehouse Floor Staff)`;
+        welcomeSubtitleEl.textContent = 'Execute dispatches, process incoming returns, report damage, and manage repair workflows.';
+        welcomeActionsEl.innerHTML = `
+          <a href="issue-asset.html" class="btn btn-primary btn-sm"><i class="bi bi-box-arrow-up-right me-1"></i> Dispatch Asset</a>
+          <a href="return-asset.html" class="btn btn-success btn-sm"><i class="bi bi-box-arrow-in-down-left me-1"></i> Receive Return</a>
+          <a href="damage.html" class="btn btn-warning btn-sm"><i class="bi bi-exclamation-triangle me-1"></i> Log Damage</a>
+        `;
+        quickActionsHeadingEl.textContent = 'Floor Operations Actions';
+        quickActionsEl.innerHTML = `
+          <a href="issue-asset.html" class="btn btn-outline-primary text-start p-3">
+            <div class="fw-bold"><i class="bi bi-box-arrow-up-right me-2"></i> Issue Packaging Asset</div>
+            <small class="text-muted">Dispatch pallets or containers to client</small>
+          </a>
+          <a href="return-asset.html" class="btn btn-outline-success text-start p-3">
+            <div class="fw-bold"><i class="bi bi-box-arrow-in-down-left me-2"></i> Receive Inward Return</div>
+            <small class="text-muted">Inspect asset condition and check-in</small>
+          </a>
+          <a href="damage.html" class="btn btn-outline-warning text-start p-3">
+            <div class="fw-bold"><i class="bi bi-exclamation-triangle me-2"></i> Log Damage Incident</div>
+            <small class="text-muted">Record cracks, bends or missing components</small>
+          </a>
+          <a href="repairs.html" class="btn btn-outline-secondary text-start p-3">
+            <div class="fw-bold"><i class="bi bi-tools me-2"></i> Manage Repair Workshop</div>
+            <small class="text-muted">Track repair progress and restore to available</small>
+          </a>
+        `;
+      } else if (user.role === 'MANAGER') {
+        pageTitleEl.innerHTML = '<i class="bi bi-bar-chart-line-fill text-warning me-2"></i>Management Analytics & Intelligence';
+        welcomeTitleEl.innerHTML = `Welcome, <strong>${user.name}</strong> (Operations Manager)`;
+        welcomeSubtitleEl.textContent = 'Monitor returnable fleet circulation, customer holding times, and maintenance costs.';
+        welcomeActionsEl.innerHTML = `
+          <a href="reports.html" class="btn btn-primary btn-sm"><i class="bi bi-file-earmark-bar-graph me-1"></i> Open Reports</a>
+          <a href="overdue.html" class="btn btn-danger btn-sm"><i class="bi bi-alarm-fill me-1"></i> Overdue Monitor</a>
+          <a href="customers.html" class="btn btn-outline-dark btn-sm"><i class="bi bi-buildings me-1"></i> Customers</a>
+        `;
+        quickActionsHeadingEl.textContent = 'Management Shortcuts';
+        quickActionsEl.innerHTML = `
+          <a href="reports.html" class="btn btn-outline-primary text-start p-3">
+            <div class="fw-bold"><i class="bi bi-file-earmark-bar-graph me-2"></i> Comprehensive Reports</div>
+            <small class="text-muted">Download customer overdue and repair expenditure</small>
+          </a>
+          <a href="overdue.html" class="btn btn-outline-danger text-start p-3">
+            <div class="fw-bold"><i class="bi bi-alarm-fill me-2"></i> Overdue Packaging Alerts</div>
+            <small class="text-muted">Track delayed returns and follow up with clients</small>
+          </a>
+          <a href="customers.html" class="btn btn-outline-secondary text-start p-3">
+            <div class="fw-bold"><i class="bi bi-buildings me-2"></i> Customer Accounts Directory</div>
+            <small class="text-muted">Review active accounts and contact details</small>
+          </a>
+          <a href="assets.html" class="btn btn-outline-dark text-start p-3">
+            <div class="fw-bold"><i class="bi bi-box-seam me-2"></i> Full Fleet Inventory</div>
+            <small class="text-muted">Audit entire asset lifecycle and distribution</small>
+          </a>
+        `;
+      }
+
       try {
-        // 1. Fetch Dashboard Metrics
+        // 2. Fetch Dashboard Metrics
         const metrics = await API.reports.getDashboardMetrics();
         document.getElementById('kpi-total').textContent = metrics.totalAssets;
         document.getElementById('kpi-available').textContent = metrics.availableAssets;
@@ -227,27 +305,33 @@
         document.getElementById('kpi-customers').textContent = metrics.totalCustomers;
         document.getElementById('kpi-repair-cost').textContent = `₹ ${Number(metrics.totalRepairCost || 0).toLocaleString('en-IN')}`;
 
-        // 2. Fetch Overdue Table
+        // 3. Fetch Overdue Table
         const overdue = await API.reports.getOverdue();
         const tbody = document.getElementById('overdue-table-body');
         if (overdue.length === 0) {
           tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-success"><i class="bi bi-check-circle me-1"></i> No overdue returns at this time!</td></tr>`;
         } else {
-          tbody.innerHTML = overdue.slice(0, 5).map(item => `
-            <tr>
-              <td><span class="fw-bold text-primary">${item.assetCode}</span></td>
-              <td>${item.packagingTypeName}</td>
-              <td>
-                <div class="fw-semibold">${item.customerName}</div>
-                <small class="text-muted">${item.customerPhone}</small>
-              </td>
-              <td>${item.expectedReturnDate}</td>
-              <td><span class="badge bg-danger rounded-pill px-2 py-1">${item.daysOverdue} Days Overdue</span></td>
-              <td>
-                <a href="return-asset.html?assetId=${item.assetId}" class="btn btn-sm btn-dark">Receive Return</a>
-              </td>
-            </tr>
-          `).join('');
+          tbody.innerHTML = overdue.slice(0, 5).map(item => {
+            let actionBtn = '';
+            if (user.role === 'MANAGER') {
+              actionBtn = `<a href="asset-history.html?assetId=${item.assetId}" class="btn btn-sm btn-outline-primary">View History</a>`;
+            } else {
+              actionBtn = `<a href="return-asset.html?assetId=${item.assetId}" class="btn btn-sm btn-dark">Receive Return</a>`;
+            }
+            return `
+              <tr>
+                <td><span class="fw-bold text-primary">${item.assetCode}</span></td>
+                <td>${item.packagingTypeName}</td>
+                <td>
+                  <div class="fw-semibold">${item.customerName}</div>
+                  <small class="text-muted">${item.customerPhone}</small>
+                </td>
+                <td>${item.expectedReturnDate}</td>
+                <td><span class="badge bg-danger rounded-pill px-2 py-1">${item.daysOverdue} Days Overdue</span></td>
+                <td>${actionBtn}</td>
+              </tr>
+            `;
+          }).join('');
         }
       } catch (err) {
         console.error('Failed to load dashboard:', err);

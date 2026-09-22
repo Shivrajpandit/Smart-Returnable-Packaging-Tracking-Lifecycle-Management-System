@@ -61,9 +61,180 @@ const Auth = {
       `;
     }
 
-    // 2. Render Sidebar
+    // 2. Render Sidebar Tailored to Role
     const sidebarEl = document.getElementById('sidebar-container');
     if (sidebarEl) {
+      let navItemsHtml = '';
+
+      if (role === 'ADMIN') {
+        navItemsHtml = `
+          <div class="sidebar-category">Overview</div>
+          <li>
+            <a href="dashboard.html" class="nav-link-custom ${activePageId === 'dashboard' ? 'active' : ''}">
+              <i class="bi bi-grid-1x2-fill"></i> Admin Dashboard
+            </a>
+          </li>
+
+          <div class="sidebar-category">Fleet Operations</div>
+          <li>
+            <a href="assets.html" class="nav-link-custom ${activePageId === 'assets' ? 'active' : ''}">
+              <i class="bi bi-box-seam"></i> Asset Registry
+            </a>
+          </li>
+          <li>
+            <a href="issue-asset.html" class="nav-link-custom ${activePageId === 'issue' ? 'active' : ''}">
+              <i class="bi bi-box-arrow-up-right"></i> Issue Asset
+            </a>
+          </li>
+          <li>
+            <a href="return-asset.html" class="nav-link-custom ${activePageId === 'return' ? 'active' : ''}">
+              <i class="bi bi-box-arrow-in-down-left"></i> Receive Return
+            </a>
+          </li>
+          <li>
+            <a href="damage.html" class="nav-link-custom ${activePageId === 'damage' ? 'active' : ''}">
+              <i class="bi bi-exclamation-triangle"></i> Damage Logs
+            </a>
+          </li>
+          <li>
+            <a href="repairs.html" class="nav-link-custom ${activePageId === 'repairs' ? 'active' : ''}">
+              <i class="bi bi-tools"></i> Repair Tickets
+            </a>
+          </li>
+          <li>
+            <a href="movements.html" class="nav-link-custom ${activePageId === 'movements' ? 'active' : ''}">
+              <i class="bi bi-truck"></i> Asset Movements
+            </a>
+          </li>
+
+          <div class="sidebar-category">Analytics & Reports</div>
+          <li>
+            <a href="overdue.html" class="nav-link-custom ${activePageId === 'overdue' ? 'active' : ''}">
+              <i class="bi bi-alarm-fill text-danger"></i> Overdue Monitor
+            </a>
+          </li>
+          <li>
+            <a href="reports.html" class="nav-link-custom ${activePageId === 'reports' ? 'active' : ''}">
+              <i class="bi bi-bar-chart-line-fill"></i> Manager Reports
+            </a>
+          </li>
+
+          <div class="sidebar-category">Master Data</div>
+          <li>
+            <a href="customers.html" class="nav-link-custom ${activePageId === 'customers' ? 'active' : ''}">
+              <i class="bi bi-buildings"></i> Customers
+            </a>
+          </li>
+          <li>
+            <a href="packaging-types.html" class="nav-link-custom ${activePageId === 'packaging-types' ? 'active' : ''}">
+              <i class="bi bi-tags"></i> Packaging Types
+            </a>
+          </li>
+          <li>
+            <a href="warehouses.html" class="nav-link-custom ${activePageId === 'warehouses' ? 'active' : ''}">
+              <i class="bi bi-geo-alt"></i> Warehouses
+            </a>
+          </li>
+
+          <div class="sidebar-category">System</div>
+          <li>
+            <a href="users.html" class="nav-link-custom ${activePageId === 'users' ? 'active' : ''}">
+              <i class="bi bi-people"></i> User Directory
+            </a>
+          </li>
+        `;
+      } else if (role === 'WAREHOUSE_STAFF') {
+        navItemsHtml = `
+          <div class="sidebar-category">Overview</div>
+          <li>
+            <a href="dashboard.html" class="nav-link-custom ${activePageId === 'dashboard' ? 'active' : ''}">
+              <i class="bi bi-speedometer2"></i> Staff Dashboard
+            </a>
+          </li>
+
+          <div class="sidebar-category">Floor Operations</div>
+          <li>
+            <a href="assets.html" class="nav-link-custom ${activePageId === 'assets' ? 'active' : ''}">
+              <i class="bi bi-box-seam"></i> Asset Registry
+            </a>
+          </li>
+          <li>
+            <a href="issue-asset.html" class="nav-link-custom ${activePageId === 'issue' ? 'active' : ''}">
+              <i class="bi bi-box-arrow-up-right text-primary"></i> Issue Asset (Dispatch)
+            </a>
+          </li>
+          <li>
+            <a href="return-asset.html" class="nav-link-custom ${activePageId === 'return' ? 'active' : ''}">
+              <i class="bi bi-box-arrow-in-down-left text-success"></i> Receive Return
+            </a>
+          </li>
+          <li>
+            <a href="damage.html" class="nav-link-custom ${activePageId === 'damage' ? 'active' : ''}">
+              <i class="bi bi-exclamation-triangle text-warning"></i> Log Damage
+            </a>
+          </li>
+          <li>
+            <a href="repairs.html" class="nav-link-custom ${activePageId === 'repairs' ? 'active' : ''}">
+              <i class="bi bi-tools text-secondary"></i> Repair Workshop
+            </a>
+          </li>
+          <li>
+            <a href="movements.html" class="nav-link-custom ${activePageId === 'movements' ? 'active' : ''}">
+              <i class="bi bi-truck"></i> Asset Movements
+            </a>
+          </li>
+
+          <div class="sidebar-category">Alerts</div>
+          <li>
+            <a href="overdue.html" class="nav-link-custom ${activePageId === 'overdue' ? 'active' : ''}">
+              <i class="bi bi-alarm-fill text-danger"></i> Overdue Monitor
+            </a>
+          </li>
+        `;
+      } else if (role === 'MANAGER') {
+        navItemsHtml = `
+          <div class="sidebar-category">Overview</div>
+          <li>
+            <a href="dashboard.html" class="nav-link-custom ${activePageId === 'dashboard' ? 'active' : ''}">
+              <i class="bi bi-bar-chart-line"></i> Manager Dashboard
+            </a>
+          </li>
+
+          <div class="sidebar-category">Intelligence & Audits</div>
+          <li>
+            <a href="reports.html" class="nav-link-custom ${activePageId === 'reports' ? 'active' : ''}">
+              <i class="bi bi-file-earmark-bar-graph-fill text-primary"></i> Financial & Fleet Reports
+            </a>
+          </li>
+          <li>
+            <a href="overdue.html" class="nav-link-custom ${activePageId === 'overdue' ? 'active' : ''}">
+              <i class="bi bi-alarm-fill text-danger"></i> Overdue Monitor
+            </a>
+          </li>
+
+          <div class="sidebar-category">Fleet & Directory</div>
+          <li>
+            <a href="assets.html" class="nav-link-custom ${activePageId === 'assets' ? 'active' : ''}">
+              <i class="bi bi-box-seam"></i> Asset Registry
+            </a>
+          </li>
+          <li>
+            <a href="customers.html" class="nav-link-custom ${activePageId === 'customers' ? 'active' : ''}">
+              <i class="bi bi-buildings"></i> Customer Accounts
+            </a>
+          </li>
+        `;
+      } else {
+        navItemsHtml = `
+          <div class="sidebar-category">Overview</div>
+          <li>
+            <a href="dashboard.html" class="nav-link-custom ${activePageId === 'dashboard' ? 'active' : ''}">
+              <i class="bi bi-grid-1x2-fill"></i> Dashboard
+            </a>
+          </li>
+        `;
+      }
+
       sidebarEl.innerHTML = `
         <div class="sidebar">
           <div class="sidebar-header">
@@ -75,82 +246,7 @@ const Auth = {
           </div>
 
           <ul class="sidebar-nav">
-            <div class="sidebar-category">Overview</div>
-            <li>
-              <a href="dashboard.html" class="nav-link-custom ${activePageId === 'dashboard' ? 'active' : ''}">
-                <i class="bi bi-grid-1x2-fill"></i> Dashboard
-              </a>
-            </li>
-
-            <div class="sidebar-category">Fleet Operations</div>
-            <li>
-              <a href="assets.html" class="nav-link-custom ${activePageId === 'assets' ? 'active' : ''}">
-                <i class="bi bi-box-seam"></i> Asset Registry
-              </a>
-            </li>
-            <li>
-              <a href="issue-asset.html" class="nav-link-custom ${activePageId === 'issue' ? 'active' : ''}">
-                <i class="bi bi-box-arrow-up-right"></i> Issue Asset
-              </a>
-            </li>
-            <li>
-              <a href="return-asset.html" class="nav-link-custom ${activePageId === 'return' ? 'active' : ''}">
-                <i class="bi bi-box-arrow-in-down-left"></i> Receive Return
-              </a>
-            </li>
-            <li>
-              <a href="damage.html" class="nav-link-custom ${activePageId === 'damage' ? 'active' : ''}">
-                <i class="bi bi-exclamation-triangle"></i> Damage Logs
-              </a>
-            </li>
-            <li>
-              <a href="repairs.html" class="nav-link-custom ${activePageId === 'repairs' ? 'active' : ''}">
-                <i class="bi bi-tools"></i> Repair Tickets
-              </a>
-            </li>
-            <li>
-              <a href="movements.html" class="nav-link-custom ${activePageId === 'movements' ? 'active' : ''}">
-                <i class="bi bi-truck"></i> Asset Movements
-              </a>
-            </li>
-
-            <div class="sidebar-category">Analytics & Reports</div>
-            <li>
-              <a href="overdue.html" class="nav-link-custom ${activePageId === 'overdue' ? 'active' : ''}">
-                <i class="bi bi-alarm-fill text-danger"></i> Overdue Monitor
-              </a>
-            </li>
-            <li>
-              <a href="reports.html" class="nav-link-custom ${activePageId === 'reports' ? 'active' : ''}">
-                <i class="bi bi-bar-chart-line-fill"></i> Manager Reports
-              </a>
-            </li>
-
-            <div class="sidebar-category">Master Data</div>
-            <li>
-              <a href="customers.html" class="nav-link-custom ${activePageId === 'customers' ? 'active' : ''}">
-                <i class="bi bi-buildings"></i> Customers
-              </a>
-            </li>
-            <li>
-              <a href="packaging-types.html" class="nav-link-custom ${activePageId === 'packaging-types' ? 'active' : ''}">
-                <i class="bi bi-tags"></i> Packaging Types
-              </a>
-            </li>
-            <li>
-              <a href="warehouses.html" class="nav-link-custom ${activePageId === 'warehouses' ? 'active' : ''}">
-                <i class="bi bi-geo-alt"></i> Warehouses
-              </a>
-            </li>
-
-            ${role === 'ADMIN' ? `
-              <div class="sidebar-category">System</div>
-              <li>
-                <a href="users.html" class="nav-link-custom ${activePageId === 'users' ? 'active' : ''}">
-                  <i class="bi bi-people"></i> User Directory
-                </a>
-              </li>
-            ` : ''}
+            ${navItemsHtml}
           </ul>
         </div>
       `;

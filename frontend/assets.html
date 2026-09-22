@@ -53,7 +53,7 @@
               </select>
             </div>
 
-            <div class="col-md-3 text-md-end">
+            <div class="col-md-3 text-md-end" id="register-btn-col">
               <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#registerAssetModal">
                 <i class="bi bi-plus-lg me-1"></i> Register Asset
               </button>
@@ -69,16 +69,16 @@
                 <tr>
                   <th>ID</th>
                   <th>Asset Code</th>
-                  <th>Packaging Category</th>
-                  <th>Capacity (KG)</th>
-                  <th>Base Warehouse</th>
-                  <th>Purchase Date</th>
-                  <th>Current Status</th>
-                  <th>Lifecycle Actions</th>
+                  <th>Packaging Type</th>
+                  <th>Capacity</th>
+                  <th>Warehouse</th>
+                  <th>Purchased</th>
+                  <th>Status</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody id="assets-table-body">
-                <tr><td colspan="8" class="text-center py-4 text-muted">Loading asset inventory...</td></tr>
+                <tr><td colspan="8" class="text-center py-4 text-muted">Loading assets...</td></tr>
               </tbody>
             </table>
           </div>
@@ -89,33 +89,36 @@
   </div>
 
   <!-- Register Asset Modal -->
-  <div class="modal fade" id="registerAssetModal" tabindex="-1" aria-hidden="true">
+  <div class="modal fade" id="registerAssetModal" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle text-primary me-2"></i>Register Physical Asset</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
         <form id="register-asset-form">
-          <div class="modal-header">
-            <h5 class="modal-title fw-bold">Register New Reusable Asset</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
           <div class="modal-body">
             <div class="mb-3">
-              <label class="form-label fw-semibold">Unique Asset Code</label>
-              <input type="text" class="form-control" id="assetCode" placeholder="e.g. MC-PUN-005" required>
+              <label class="form-label fw-semibold">Asset Tracking Code / Barcode <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="assetCode" placeholder="e.g. MC-PUN-105" required>
             </div>
+
             <div class="mb-3">
-              <label class="form-label fw-semibold">Packaging Type</label>
+              <label class="form-label fw-semibold">Packaging Type / Category <span class="text-danger">*</span></label>
               <select class="form-select" id="typeId" required>
-                <option value="">Select Packaging Type...</option>
+                <option value="">Loading types...</option>
               </select>
             </div>
+
             <div class="mb-3">
-              <label class="form-label fw-semibold">Assigned Warehouse Hub</label>
+              <label class="form-label fw-semibold">Initial Assignment Warehouse <span class="text-danger">*</span></label>
               <select class="form-select" id="warehouseId" required>
-                <option value="">Select Warehouse...</option>
+                <option value="">Loading warehouses...</option>
               </select>
             </div>
+
             <div class="mb-3">
-              <label class="form-label fw-semibold">Purchase / Commission Date</label>
+              <label class="form-label fw-semibold">Commission / Purchase Date <span class="text-danger">*</span></label>
               <input type="date" class="form-control" id="purchaseDate" required>
             </div>
           </div>
@@ -132,19 +135,20 @@
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
   <script>
-    let packagingTypes = [];
-    let warehouses = [];
+    let currentUser = null;
 
     async function loadDropdowns() {
-      packagingTypes = await API.packagingTypes.getAll();
-      warehouses = await API.warehouses.getAll();
+      const [packagingTypes, warehouses] = await Promise.all([
+        API.packagingTypes.getAll(),
+        API.warehouses.getAll()
+      ]);
 
-      // Populate filter dropdown
       const whFilter = document.getElementById('filter-warehouse');
-      whFilter.innerHTML = `<option value="">All Warehouses</option>` + 
-        warehouses.map(w => `<option value="${w.warehouseId}">${w.warehouseName}</option>`).join('');
+      if (whFilter) {
+        whFilter.innerHTML = `<option value="">All Warehouses</option>` + 
+          warehouses.map(w => `<option value="${w.warehouseId}">${w.warehouseName}</option>`).join('');
+      }
 
-      // Populate modal dropdowns
       const typeSelect = document.getElementById('typeId');
       typeSelect.innerHTML = `<option value="">Select Packaging Type...</option>` + 
         packagingTypes.map(t => `<option value="${t.typeId}">${t.typeName} (${t.capacityKg} kg)</option>`).join('');
@@ -167,45 +171,61 @@
         return;
       }
 
-      tbody.innerHTML = assets.map(a => `
-        <tr>
-          <td><span class="text-muted">#${a.assetId}</span></td>
-          <td><strong class="text-primary">${a.assetCode}</strong></td>
-          <td>${a.packagingType ? a.packagingType.typeName : 'N/A'}</td>
-          <td>${a.packagingType ? a.packagingType.capacityKg + ' kg' : '--'}</td>
-          <td>${a.warehouse ? a.warehouse.warehouseName : 'N/A'}</td>
-          <td>${a.purchaseDate}</td>
-          <td><span class="badge-status badge-${a.status}">${a.status}</span></td>
-          <td>
-            <div class="btn-group btn-group-sm">
-              <a href="asset-history.html?assetId=${a.assetId}" class="btn btn-outline-primary" title="View 360° History">
-                <i class="bi bi-clock-history"></i> History
+      tbody.innerHTML = assets.map(a => {
+        let opButtons = '';
+        if (currentUser && currentUser.role !== 'MANAGER') {
+          if (a.status === 'AVAILABLE') {
+            opButtons += `
+              <a href="issue-asset.html?assetId=${a.assetId}" class="btn btn-outline-success" title="Issue Asset">
+                <i class="bi bi-box-arrow-up-right"></i> Issue
               </a>
-              ${a.status === 'AVAILABLE' ? `
-                <a href="issue-asset.html?assetId=${a.assetId}" class="btn btn-outline-success" title="Issue Asset">
-                  <i class="bi bi-box-arrow-up-right"></i> Issue
+            `;
+          } else if (a.status === 'ISSUED') {
+            opButtons += `
+              <a href="return-asset.html?assetId=${a.assetId}" class="btn btn-outline-info" title="Receive Return">
+                <i class="bi bi-box-arrow-in-down-left"></i> Return
+              </a>
+            `;
+          } else if (a.status === 'DAMAGED') {
+            opButtons += `
+              <a href="repairs.html?assetId=${a.assetId}" class="btn btn-outline-warning" title="Repair Asset">
+                <i class="bi bi-tools"></i> Repair
+              </a>
+            `;
+          }
+        }
+
+        return `
+          <tr>
+            <td><span class="text-muted">#${a.assetId}</span></td>
+            <td><strong class="text-primary">${a.assetCode}</strong></td>
+            <td>${a.packagingType ? a.packagingType.typeName : 'N/A'}</td>
+            <td>${a.packagingType ? a.packagingType.capacityKg + ' kg' : '--'}</td>
+            <td>${a.warehouse ? a.warehouse.warehouseName : 'N/A'}</td>
+            <td>${a.purchaseDate}</td>
+            <td><span class="badge-status badge-${a.status}">${a.status}</span></td>
+            <td>
+              <div class="btn-group btn-group-sm">
+                <a href="asset-history.html?assetId=${a.assetId}" class="btn btn-outline-primary" title="View 360° History">
+                  <i class="bi bi-clock-history"></i> History
                 </a>
-              ` : ''}
-              ${a.status === 'ISSUED' ? `
-                <a href="return-asset.html?assetId=${a.assetId}" class="btn btn-outline-info" title="Receive Return">
-                  <i class="bi bi-box-arrow-in-down-left"></i> Return
-                </a>
-              ` : ''}
-              ${a.status === 'DAMAGED' ? `
-                <a href="repairs.html?assetId=${a.assetId}" class="btn btn-outline-warning" title="Repair Asset">
-                  <i class="bi bi-tools"></i> Repair
-                </a>
-              ` : ''}
-            </div>
-          </td>
-        </tr>
-      `).join('');
+                ${opButtons}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
-      const user = Auth.requireAuth();
-      if (!user) return;
+      currentUser = Auth.requireAuth();
+      if (!currentUser) return;
       Auth.initNavigation('assets');
+
+      if (currentUser.role === 'MANAGER') {
+        const regCol = document.getElementById('register-btn-col');
+        if (regCol) regCol.style.display = 'none';
+      }
 
       document.getElementById('purchaseDate').value = new Date().toISOString().split('T')[0];
 

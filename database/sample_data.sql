@@ -29,8 +29,8 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- =============================================================================
 INSERT INTO users (user_id, name, email, password, role) VALUES
 (1, 'Rajesh Sharma', 'admin@packaging.com', '$2a$10$WxbaAPyL77tgE3Vs1Yibc./HpGPCzfpkga2nwOiF7BcD4FevhoP0q', 'ADMIN'),
-(2, 'Amit Verma', 'staff@packaging.com', '$2a$10$WxbaAPyL77tgE3Vs1Yibc./HpGPCzfpkga2nwOiF7BcD4FevhoP0q', 'WAREHOUSE_STAFF'),
-(3, 'Pooja Nair', 'manager@packaging.com', '$2a$10$WxbaAPyL77tgE3Vs1Yibc./HpGPCzfpkga2nwOiF7BcD4FevhoP0q', 'MANAGER');
+(2, 'Amit Verma', 'staff@packaging.com', '$2a$10$nSksTJ70QARhIjB7teqwWOUD1ALismu6pCQL3NzUKtZA3AyIvSZza', 'WAREHOUSE_STAFF'),
+(3, 'Pooja Nair', 'manager@packaging.com', '$2a$10$gfjCkwy6myW7GY2wt6sC6e8FyzwzwGlqGCs04639d4ssOrO3H3dRi', 'MANAGER');
 
 -- =============================================================================
 -- 2. Insert Customers (Realistic Indian Manufacturing & Logistics Firms)
